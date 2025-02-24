@@ -1,41 +1,38 @@
 import React from "react";
 
-const TextConfig = ({ config, handleConfigChange, handleDragStart }) => {
+const TextConfig = ({ config, setConfig, handleDragStart }) => {
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setConfig((prev) => ({ ...prev, [name]: value }));
+  };
+
   return (
-    <div>
+    <div className="config-section">
+      <h4>Text Configuration</h4>
       <label>
-        Headline Font Size (px):
-        <input
-          type="number"
-          name="size"
-          value={config.size || ""}
-          onChange={handleConfigChange}
-          min="1"
-        />
-      </label>
-      <label>
-        Headline Content:
+        Content:
         <input
           type="text"
           name="content"
           value={config.content || ""}
-          onChange={handleConfigChange}
+          onChange={handleChange}
+          placeholder="Enter text"
         />
       </label>
       <label>
-        Headline Color:
+        Color:
         <input
           type="color"
           name="color"
           value={config.color || "#000000"}
-          onChange={handleConfigChange}
+          onChange={handleChange}
         />
       </label>
       <button
         draggable
         onDragStart={(e) => handleDragStart(e, "text")}
       >
-        Drag Headline
+        Drag Text to Canvas
       </button>
     </div>
   );

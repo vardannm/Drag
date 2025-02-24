@@ -1,4 +1,3 @@
-// src/components/Navbar/Navbar.jsx
 import React from "react";
 import { Link } from "react-router-dom";
 import "./Navbar.css";
@@ -9,6 +8,8 @@ const Navbar = ({
   setElements,
   canvasBackgroundColor,
   handleBackgroundColorChange,
+  viewMode,
+  toggleViewMode,
 }) => {
   return (
     <nav className="navbar">
@@ -27,6 +28,15 @@ const Navbar = ({
           onClick={() => setElements([...elements])}
         >
           Save Design
+        </button>
+        <button
+          className="navbar-button"
+          onClick={() => {
+            console.log("View/Edit Mode button clicked"); // Debug log
+            toggleViewMode();
+          }}
+        >
+          {viewMode ? "Edit Mode" : "View Mode"}
         </button>
         <div className="navbar-color-picker">
           <label htmlFor="bgColor">Background:</label>

@@ -1,18 +1,19 @@
-import PropTypes from "prop-types";
+import React, { useState } from "react";
 import { DndContext, useDroppable } from "@dnd-kit/core";
-import CanvasItem from "./CanvasItem";
-import AlignmentLine from "./AlignmentLine";
+import CanvasItem from "../CanvasItem/CanvasItem";
+import AlignmentLine from "../Panel/AligmentLine";
+import "./Canvas.css";
 
 const Canvas = ({
   elements,
-  alignmentLine,
   setElements,
-  setAlignmentLine,
   removeElement,
   removeAllElements,
+  updateElement,
   canvasBackgroundColor,
-  handleResizeMouseDown,
+  viewMode,
 }) => {
+  const [alignmentLines, setAlignmentLines] = useState([]);
   const { setNodeRef } = useDroppable({
     id: "canvas",
   });
@@ -20,39 +21,40 @@ const Canvas = ({
   const handleDragMove = (event) => {
     const { active, delta } = event;
     const snapThreshold = 10;
-    let alignment = null;
-
     const draggingElement = elements.find((el) => el.id === active.id);
-    if (!draggingElement) return;
+    if (!draggingElement) {
+      setAlignmentLines([]);
+      return;
+    }
 
     const newX = draggingElement.position.x + delta.x;
     const newY = draggingElement.position.y + delta.y;
+    const lines = [];
 
     elements.forEach((el) => {
       if (el.id !== active.id) {
         if (Math.abs(newY - el.position.y) < snapThreshold) {
-          alignment = { type: "horizontal", position: el.position.y };
+          lines.push({ type: "horizontal", position: el.position.y });
         }
         if (Math.abs(newX - el.position.x) < snapThreshold) {
-          alignment = { type: "vertical", position: el.position.x };
+          lines.push({ type: "vertical", position: el.position.x });
         }
       }
     });
 
-    setAlignmentLine(alignment);
+    setAlignmentLines(lines);
   };
 
   const handleDragEnd = (event) => {
     const { active, delta } = event;
     const snapThreshold = 10;
 
-    setElements((prev) => {
-      const newElements = prev.map((el) => {
+    setElements((prev) =>
+      prev.map((el) => {
         if (el.id === active.id) {
           let newX = el.position.x + delta.x;
           let newY = el.position.y + delta.y;
 
-          // Apply snapping if within threshold
           prev.forEach((otherEl) => {
             if (otherEl.id !== active.id) {
               if (Math.abs(newY - otherEl.position.y) < snapThreshold) {
@@ -67,10 +69,9 @@ const Canvas = ({
           return { ...el, position: { x: newX, y: newY } };
         }
         return el;
-      });
-      return [...newElements]; // Ensure a new array reference to trigger re-render
-    });
-    setAlignmentLine(null); // Reset alignment line
+      })
+    );
+    setAlignmentLines([]);
   };
 
   const handleDrop = (event) => {
@@ -82,7 +83,7 @@ const Canvas = ({
       type,
       config,
       position: { x: event.nativeEvent.offsetX, y: event.nativeEvent.offsetY },
-      size: type === "text" ? null : { width: config.width || 200, height: config.height || "auto" },
+      size: type === "text" || type === "list" ? null : { width: 200, height: 200 },
     };
     setElements((prev) => [...prev, newElement]);
   };
@@ -96,16 +97,21 @@ const Canvas = ({
         onDragOver={(e) => e.preventDefault()}
         style={{ backgroundColor: canvasBackgroundColor }}
       >
-        {alignmentLine && <AlignmentLine alignmentLine={alignmentLine} />}
+        {alignmentLines
+          .filter((line) => line && line.type && line.position !== undefined)
+          .map((line, index) => (
+            <AlignmentLine key={index} type={line.type} position={line.position} />
+          ))}
         {elements.map((el) => (
           <CanvasItem
             key={el.id}
             element={el}
             removeElement={removeElement}
-            handleResizeMouseDown={handleResizeMouseDown}
+            updateElement={updateElement}
+            viewMode={viewMode} // Pass viewMode to CanvasItem
           />
         ))}
-        {elements.length > 0 && (
+        {elements.length > 0 && !viewMode && ( // Hide in view mode
           <button className="remove-all-button" onClick={removeAllElements}>
             Remove Everything
           </button>
@@ -113,34 +119,6 @@ const Canvas = ({
       </div>
     </DndContext>
   );
-};
-
-Canvas.propTypes = {
-  elements: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
-      type: PropTypes.oneOf(["text", "image", "list"]).isRequired,
-      position: PropTypes.shape({
-        x: PropTypes.number.isRequired,
-        y: PropTypes.number.isRequired,
-      }).isRequired,
-      size: PropTypes.shape({
-        width: PropTypes.number,
-        height: PropTypes.number,
-      }),
-      config: PropTypes.object.isRequired,
-    })
-  ).isRequired,
-  alignmentLine: PropTypes.shape({
-    type: PropTypes.oneOf(["vertical", "horizontal"]).isRequired,
-    position: PropTypes.number.isRequired,
-  }),
-  setElements: PropTypes.func.isRequired,
-  setAlignmentLine: PropTypes.func.isRequired,
-  removeElement: PropTypes.func.isRequired,
-  removeAllElements: PropTypes.func.isRequired,
-  canvasBackgroundColor: PropTypes.string.isRequired,
-  handleResizeMouseDown: PropTypes.func.isRequired,
 };
 
 export default Canvas;
