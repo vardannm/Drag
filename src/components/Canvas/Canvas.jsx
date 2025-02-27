@@ -7,11 +7,14 @@ import "./Canvas.css";
 const Canvas = ({
   elements,
   setElements,
+  addOrDuplicateElement, // New prop
   removeElement,
   removeAllElements,
   updateElement,
   canvasBackgroundColor,
   viewMode,
+  selectedElementId,
+  setSelectedElementId,
 }) => {
   const [alignmentLines, setAlignmentLines] = useState([]);
   const { setNodeRef } = useDroppable({
@@ -29,19 +32,25 @@ const Canvas = ({
 
     const newX = draggingElement.position.x + delta.x;
     const newY = draggingElement.position.y + delta.y;
-    const lines = [];
+    const newRotation = draggingElement.rotation || 0;
 
+    const lines = [];
     elements.forEach((el) => {
       if (el.id !== active.id) {
+        const otherRotation = el.rotation || 0;
         if (Math.abs(newY - el.position.y) < snapThreshold) {
-          lines.push({ type: "horizontal", position: el.position.y });
+          lines.push({ type: "horizontal", position: el.position.y, rotation: 0 });
         }
         if (Math.abs(newX - el.position.x) < snapThreshold) {
-          lines.push({ type: "vertical", position: el.position.x });
+          lines.push({ type: "vertical", position: el.position.x, rotation: 90 });
+        }
+        if (Math.abs(newX - el.position.x) === Math.abs(newY - el.position.y)) {
+          if (Math.abs(newRotation - otherRotation) < snapThreshold) {
+            lines.push({ type: "diagonal", position: newY, rotation: 45 });
+          }
         }
       }
     });
-
     setAlignmentLines(lines);
   };
 
@@ -54,6 +63,7 @@ const Canvas = ({
         if (el.id === active.id) {
           let newX = el.position.x + delta.x;
           let newY = el.position.y + delta.y;
+          let newRotation = el.rotation || 0;
 
           prev.forEach((otherEl) => {
             if (otherEl.id !== active.id) {
@@ -63,10 +73,13 @@ const Canvas = ({
               if (Math.abs(newX - otherEl.position.x) < snapThreshold) {
                 newX = otherEl.position.x;
               }
+              if (Math.abs(newRotation - (otherEl.rotation || 0)) < snapThreshold) {
+                newRotation = otherEl.rotation || 0;
+              }
             }
           });
 
-          return { ...el, position: { x: newX, y: newY } };
+          return { ...el, position: { x: newX, y: newY }, rotation: newRotation };
         }
         return el;
       })
@@ -78,14 +91,17 @@ const Canvas = ({
     event.preventDefault();
     const type = event.dataTransfer.getData("type");
     const config = JSON.parse(event.dataTransfer.getData("config"));
-    const newElement = {
-      id: Date.now(),
-      type,
-      config,
-      position: { x: event.nativeEvent.offsetX, y: event.nativeEvent.offsetY },
-      size: type === "text" || type === "list" ? null : { width: 200, height: 200 },
-    };
-    setElements((prev) => [...prev, newElement]);
+    addOrDuplicateElement(type, config, { isDuplicate: false });
+  };
+
+  const duplicateElement = (id) => {
+    const elementToDuplicate = elements.find((el) => el.id === id);
+    if (elementToDuplicate) {
+      addOrDuplicateElement(elementToDuplicate.type, elementToDuplicate.config, {
+        isDuplicate: true,
+        originalElement: elementToDuplicate,
+      });
+    }
   };
 
   return (
@@ -100,18 +116,21 @@ const Canvas = ({
         {alignmentLines
           .filter((line) => line && line.type && line.position !== undefined)
           .map((line, index) => (
-            <AlignmentLine key={index} type={line.type} position={line.position} />
+            <AlignmentLine key={index} type={line.type} position={line.position} rotation={line.rotation} />
           ))}
         {elements.map((el) => (
           <CanvasItem
             key={el.id}
             element={el}
             removeElement={removeElement}
+            duplicateElement={duplicateElement}
             updateElement={updateElement}
-            viewMode={viewMode} // Pass viewMode to CanvasItem
+            viewMode={viewMode}
+            selectedElementId={selectedElementId}
+            setSelectedElementId={setSelectedElementId}
           />
         ))}
-        {elements.length > 0 && !viewMode && ( // Hide in view mode
+        {elements.length > 0 && !viewMode && (
           <button className="remove-all-button" onClick={removeAllElements}>
             Remove Everything
           </button>

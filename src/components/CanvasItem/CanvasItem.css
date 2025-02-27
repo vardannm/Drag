@@ -8,7 +8,7 @@
   padding: 15px;
   cursor: grab;
   user-select: none;
-  background-color: rgba(255, 255, 255, 0.9);
+ 
   position: relative;
 }
 
@@ -74,12 +74,42 @@
 }
 
 .resize-handle {
-  position: absolute;
-  bottom: -5px;
-  right: -5px;
   width: 10px;
   height: 10px;
-  background-color: #007bff;
-  border-radius: 2px;
-  cursor: se-resize;
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  cursor: nwse-resize;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 3px;
+}
+.rotate-handle {
+  width: 10px;
+  height: 10px;
+  position: absolute;
+  top: -15px;
+  left: 50%;
+  transform: translateX(-50%);
+  cursor: grab;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 50%;
+}
+.duplicate-button {
+  position: absolute;
+  top: 10px;
+  right: 20%; /* Adjust positioning relative to remove/edit buttons */
+  width: 20px;
+  height: 20px;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.duplicate-button:hover {
+  background: #f0f0f0;
 }

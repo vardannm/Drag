@@ -12,6 +12,7 @@
     left: 0;
     right: 0;
     z-index: 1000;
+    
   }
   
   .navbar-brand {
@@ -41,6 +42,7 @@
     cursor: pointer;
     font-weight: 500;
     transition: all 0.3s ease;
+    link-decoration: none;
   }
   
   .navbar-button:hover {

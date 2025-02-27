@@ -1,12 +1,12 @@
 import React from "react";
 
-const ImageConfig = ({ config, setConfig, handleDragStart }) => {
+const ImageConfig = ({ config, setConfig, handleDragStart, isEditingExisting }) => {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
       const reader = new FileReader();
       reader.onload = (event) => {
-        setConfig((prev) => ({ ...prev, imageUrl: event.target.result }));
+        setConfig({ ...config, imageUrl: event.target.result });
       };
       reader.readAsDataURL(file);
     }
@@ -14,7 +14,7 @@ const ImageConfig = ({ config, setConfig, handleDragStart }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setConfig((prev) => ({ ...prev, [name]: parseInt(value) || "" }));
+    setConfig({ ...config, [name]: parseInt(value) || "" });
   };
 
   return (
@@ -44,12 +44,11 @@ const ImageConfig = ({ config, setConfig, handleDragStart }) => {
           placeholder="200"
         />
       </label>
-      <button
-        draggable
-        onDragStart={(e) => handleDragStart(e, "image")}
-      >
-        Drag Image to Canvas
-      </button>
+      {!isEditingExisting && (
+        <button draggable onDragStart={(e) => handleDragStart(e, "image")}>
+          Drag Image to Canvas
+        </button>
+      )}
     </div>
   );
 };

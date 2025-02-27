@@ -32,7 +32,7 @@ const Navbar = ({
         <button
           className="navbar-button"
           onClick={() => {
-            console.log("View/Edit Mode button clicked"); // Debug log
+            // Debug log
             toggleViewMode();
           }}
         >

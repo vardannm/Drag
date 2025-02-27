@@ -1,13 +1,13 @@
 import React, { useState } from "react";
 
-const ListConfig = ({ config, setConfig, handleDragStart }) => {
+const ListConfig = ({ config, setConfig, handleDragStart, isEditingExisting }) => {
   const [items, setItems] = useState(config.items || []);
 
   const addItem = () => {
     const newItem = { text: "", color: "#000000" };
     const updatedItems = [...items, newItem];
     setItems(updatedItems);
-    setConfig((prev) => ({ ...prev, items: updatedItems }));
+    setConfig({ ...config, items: updatedItems });
   };
 
   const updateItem = (index, field, value) => {
@@ -15,13 +15,13 @@ const ListConfig = ({ config, setConfig, handleDragStart }) => {
       i === index ? { ...item, [field]: value } : item
     );
     setItems(updatedItems);
-    setConfig((prev) => ({ ...prev, items: updatedItems }));
+    setConfig({ ...config, items: updatedItems });
   };
 
   const removeItem = (index) => {
     const updatedItems = items.filter((_, i) => i !== index);
     setItems(updatedItems);
-    setConfig((prev) => ({ ...prev, items: updatedItems }));
+    setConfig({ ...config, items: updatedItems });
   };
 
   return (
@@ -49,12 +49,11 @@ const ListConfig = ({ config, setConfig, handleDragStart }) => {
         ))}
         <button onClick={addItem}>Add Item</button>
       </div>
-      <button
-        draggable
-        onDragStart={(e) => handleDragStart(e, "list")}
-      >
-        Drag List to Canvas
-      </button>
+      {!isEditingExisting && (
+        <button draggable onDragStart={(e) => handleDragStart(e, "list")}>
+          Drag List to Canvas
+        </button>
+      )}
     </div>
   );
 };

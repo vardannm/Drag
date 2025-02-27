@@ -9,44 +9,115 @@ const Panel = ({
   elements,
   removeElement,
   handleBackgroundColorChange,
+  selectedElementId,
+  setSelectedElementId, // Add this prop
+  updateElement,
 }) => {
   const [selectedType, setSelectedType] = useState(null);
-  const [config, setConfig] = useState({});
+  const [newElementConfig, setNewElementConfig] = useState({
+    content: "",
+    color: "#000000",
+    fontSize: "16",
+    fontWeight: "normal",
+  });
+
+  const selectedElement = elements.find((el) => el.id === selectedElementId);
 
   const handleDragStart = (e, type) => {
     e.dataTransfer.setData("type", type);
-    e.dataTransfer.setData("config", JSON.stringify(config));
-    setConfig({}); // Reset config after drag
+    e.dataTransfer.setData("config", JSON.stringify(newElementConfig));
+    setNewElementConfig({
+      content: "",
+      color: "#000000",
+      fontSize: "16",
+      fontWeight: "normal",
+    });
+  };
+
+  const handleConfigChange = (newConfig) => {
+    if (selectedElement) {
+      updateElement(selectedElement.id, { config: { ...selectedElement.config, ...newConfig } });
+    } else {
+      setNewElementConfig(newConfig);
+    }
+  };
+
+  const deselectElement = () => {
+    setSelectedType(null); // Reset to add mode
+    setNewElementConfig({
+      content: "",
+      color: "#000000",
+      fontSize: "16",
+      fontWeight: "normal",
+    });
+    setSelectedElementId(null); // Clear the selected element ID
   };
 
   return (
     <div className="panel">
-      <div className="type-buttons">
-        <button onClick={() => setSelectedType("text")}>Add Text</button>
-        <button onClick={() => setSelectedType("image")}>Add Image</button>
-        <button onClick={() => setSelectedType("list")}>Add List</button>
-      </div>
+      {selectedElement ? (
+        <div className="selected-element-config">
+          <h3>Edit {selectedElement.type.charAt(0).toUpperCase() + selectedElement.type.slice(1)}</h3>
+          {selectedElement.type === "text" && (
+            <TextConfig
+              config={selectedElement.config}
+              setConfig={handleConfigChange}
+              handleDragStart={handleDragStart}
+              isEditingExisting={true}
+            />
+          )}
+          {selectedElement.type === "image" && (
+            <ImageConfig
+              config={selectedElement.config}
+              setConfig={handleConfigChange}
+              handleDragStart={handleDragStart}
+              isEditingExisting={true}
+            />
+          )}
+          {selectedElement.type === "list" && (
+            <ListConfig
+              config={selectedElement.config}
+              setConfig={handleConfigChange}
+              handleDragStart={handleDragStart}
+              isEditingExisting={true}
+            />
+          )}
+          <button onClick={deselectElement}>Add New Element</button>
+        </div>
+      ) : (
+        <>
+          <div className="type-buttons">
+            <button onClick={() => setSelectedType("text")}>Add Text</button>
+            <button onClick={() => setSelectedType("image")}>Add Image</button>
+            <button onClick={() => setSelectedType("list")}>Add List</button>
+          </div>
 
-      {selectedType === "text" && (
-        <TextConfig config={config} setConfig={setConfig} handleDragStart={handleDragStart} />
+          {selectedType === "text" && (
+            <TextConfig
+              config={newElementConfig}
+              setConfig={handleConfigChange}
+              handleDragStart={handleDragStart}
+              isEditingExisting={false}
+            />
+          )}
+          {selectedType === "image" && (
+            <ImageConfig
+              config={newElementConfig}
+              setConfig={handleConfigChange}
+              handleDragStart={handleDragStart}
+              isEditingExisting={false}
+            />
+          )}
+          {selectedType === "list" && (
+            <ListConfig
+              config={newElementConfig}
+              setConfig={handleConfigChange}
+              handleDragStart={handleDragStart}
+              isEditingExisting={false}
+            />
+          )}
+        </>
       )}
-      {selectedType === "image" && (
-        <ImageConfig config={config} setConfig={setConfig} handleDragStart={handleDragStart} />
-      )}
-      {selectedType === "list" && (
-        <ListConfig config={config} setConfig={setConfig} handleDragStart={handleDragStart} />
-      )}
-
-      <div className="background-control">
-        <label>
-          Canvas Background:
-          <input
-            type="color"
-            value={elements.canvasBackgroundColor || "#ffffff"}
-            onChange={handleBackgroundColorChange}
-          />
-        </label>
-      </div>
 
       <div className="elements-list">
         <h3>Elements on Canvas</h3>
