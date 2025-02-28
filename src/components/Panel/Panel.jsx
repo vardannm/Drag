@@ -10,7 +10,7 @@ const Panel = ({
   removeElement,
   handleBackgroundColorChange,
   selectedElementId,
-  setSelectedElementId, // Add this prop
+  setSelectedElementId,
   updateElement,
 }) => {
   const [selectedType, setSelectedType] = useState(null);
@@ -20,8 +20,10 @@ const Panel = ({
     fontSize: "16",
     fontWeight: "normal",
   });
+  const [editingElementId, setEditingElementId] = useState(null);
 
   const selectedElement = elements.find((el) => el.id === selectedElementId);
+  const editingElement = elements.find((el) => el.id === editingElementId);
 
   const handleDragStart = (e, type) => {
     e.dataTransfer.setData("type", type);
@@ -35,7 +37,9 @@ const Panel = ({
   };
 
   const handleConfigChange = (newConfig) => {
-    if (selectedElement) {
+    if (editingElement) {
+      updateElement(editingElement.id, { config: { ...editingElement.config, ...newConfig } });
+    } else if (selectedElement) {
       updateElement(selectedElement.id, { config: { ...selectedElement.config, ...newConfig } });
     } else {
       setNewElementConfig(newConfig);
@@ -43,19 +47,70 @@ const Panel = ({
   };
 
   const deselectElement = () => {
-    setSelectedType(null); // Reset to add mode
+    setSelectedType(null);
+    setEditingElementId(null);
     setNewElementConfig({
       content: "",
       color: "#000000",
       fontSize: "16",
       fontWeight: "normal",
     });
-    setSelectedElementId(null); // Clear the selected element ID
+    setSelectedElementId(null);
+  };
+
+  const handleEditClick = (elementId) => {
+    setEditingElementId(elementId);
+    setSelectedElementId(elementId);
+    const element = elements.find((el) => el.id === elementId);
+    setSelectedType(element.type);
+  };
+
+  const handleSave = () => {
+    setEditingElementId(null);
+    setSelectedType(null);
+  };
+
+  const handleClose = () => {
+    setEditingElementId(null);
+    setSelectedType(null);
+    setSelectedElementId(null);
   };
 
   return (
     <div className="panel">
-      {selectedElement ? (
+      {editingElement ? (
+        <div className="selected-element-config">
+          <h3>Edit {editingElement.type.charAt(0).toUpperCase() + editingElement.type.slice(1)}</h3>
+          {editingElement.type === "text" && (
+            <TextConfig
+              config={editingElement.config}
+              setConfig={handleConfigChange}
+              handleDragStart={handleDragStart}
+              isEditingExisting={true}
+            />
+          )}
+          {editingElement.type === "image" && (
+            <ImageConfig
+              config={editingElement.config}
+              setConfig={handleConfigChange}
+              handleDragStart={handleDragStart}
+              isEditingExisting={true}
+            />
+          )}
+          {editingElement.type === "list" && (
+            <ListConfig
+              config={editingElement.config}
+              setConfig={handleConfigChange}
+              handleDragStart={handleDragStart}
+              isEditingExisting={true}
+            />
+          )}
+          <div className="edit-controls">
+            <button onClick={handleSave}>Save</button>
+            <button onClick={handleClose}>Close</button>
+          </div>
+        </div>
+      ) : selectedElement ? (
         <div className="selected-element-config">
           <h3>Edit {selectedElement.type.charAt(0).toUpperCase() + selectedElement.type.slice(1)}</h3>
           {selectedElement.type === "text" && (
@@ -131,6 +186,7 @@ const Panel = ({
                 {el.type === "image" && `Image: ${el.config.imageUrl?.split('/').pop() || "Unnamed"}`}
                 {el.type === "list" && `List: ${el.config.items?.length || 0} items`}
               </span>
+              <button onClick={() => handleEditClick(el.id)}>Edit</button>
               <button onClick={() => removeElement(el.id)}>Remove</button>
             </div>
           ))

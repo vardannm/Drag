@@ -1,9 +1,21 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 
 const TextConfig = ({ config, setConfig, handleDragStart, isEditingExisting }) => {
+  const [localConfig, setLocalConfig] = useState(config);
+
+  // Sync local state with prop changes (e.g., when a new element is selected)
+  useEffect(() => {
+    setLocalConfig(config);
+  }, [config]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setConfig({ ...config, [name]: value });
+    setLocalConfig((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // Update parent state on blur (when user finishes typing)
+  const handleBlur = () => {
+    setConfig(localConfig);
   };
 
   return (
@@ -14,8 +26,9 @@ const TextConfig = ({ config, setConfig, handleDragStart, isEditingExisting }) =
         <input
           type="text"
           name="content"
-          value={config.content || ""}
+          value={localConfig.content || ""}
           onChange={handleChange}
+          onBlur={handleBlur}
           placeholder="Enter text"
         />
       </label>
@@ -24,8 +37,9 @@ const TextConfig = ({ config, setConfig, handleDragStart, isEditingExisting }) =
         <input
           type="color"
           name="color"
-          value={config.color || "#000000"}
+          value={localConfig.color || "#000000"}
           onChange={handleChange}
+          onBlur={handleBlur}
         />
       </label>
       <label>
@@ -33,8 +47,9 @@ const TextConfig = ({ config, setConfig, handleDragStart, isEditingExisting }) =
         <input
           type="number"
           name="fontSize"
-          value={config.fontSize || "16"}
+          value={localConfig.fontSize || "16"}
           onChange={handleChange}
+          onBlur={handleBlur}
           min="8"
           max="72"
           step="1"
@@ -44,8 +59,9 @@ const TextConfig = ({ config, setConfig, handleDragStart, isEditingExisting }) =
         Font Weight:
         <select
           name="fontWeight"
-          value={config.fontWeight || "normal"}
+          value={localConfig.fontWeight || "normal"}
           onChange={handleChange}
+          onBlur={handleBlur}
         >
           <option value="normal">Normal</option>
           <option value="bold">Bold</option>

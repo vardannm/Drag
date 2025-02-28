@@ -174,3 +174,20 @@
   .list-item-config button:hover {
     background-color: #ff1a1a;
   }
+  .edit-controls {
+    margin-top: 10px;
+    display: flex;
+    gap: 10px;
+  }
+  
+  .element-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 5px 0;
+  }
+  
+  .element-item button {
+    padding: 2px 8px;
+    font-size: 12px;
+  }

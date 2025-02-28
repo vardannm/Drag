@@ -1,7 +1,7 @@
 import React from "react";
 import "./AligmentLine.css";
 
-const AlignmentLine = ({ type, position, rotation }) => {
+const AlignmentLine = ({ type, position, x, y, rotation }) => {
   const style = {
     position: "absolute",
     backgroundColor: "blue",
@@ -9,9 +9,8 @@ const AlignmentLine = ({ type, position, rotation }) => {
     zIndex: 9999,
   };
 
-  switch (rotation) {
-    case 0:
-    case 360:
+  switch (type) {
+    case "horizontal":
       Object.assign(style, {
         top: `${position}px`,
         left: 0,
@@ -19,8 +18,7 @@ const AlignmentLine = ({ type, position, rotation }) => {
         height: "1px",
       });
       break;
-    case 90:
-    case 270:
+    case "vertical":
       Object.assign(style, {
         left: `${position}px`,
         top: 0,
@@ -28,29 +26,27 @@ const AlignmentLine = ({ type, position, rotation }) => {
         width: "1px",
       });
       break;
-    case 45:
-    case 135:
+    case "diagonal":
       Object.assign(style, {
-        left: "50%",
-        top: "50%",
-        width: "100%",
+        left: `${x}px`,
+        top: `${y}px`,
+        width: "200%", // Long enough to span canvas
         height: "1px",
         transform: `rotate(${rotation}deg) translate(-50%, -50%)`,
         transformOrigin: "center",
       });
       break;
-    case 180:
+    case "rotation": // Optional: could visualize rotation differently
       Object.assign(style, {
-        bottom: `${position}px`,
+        top: `${position}px`,
         left: 0,
         width: "100%",
         height: "1px",
+        backgroundColor: "green", // Different color for rotation
       });
       break;
     default:
-      Object.assign(style, {
-        display: "none", // Hide when an invalid rotation is provided
-      });
+      Object.assign(style, { display: "none" });
       break;
   }
 
