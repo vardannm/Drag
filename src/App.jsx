@@ -7,14 +7,51 @@ import UserInfo from "./components/UserInfo/UserInfo";
 import "./App.css";
 
 const App = () => {
+  const [canvasBackgroundImage, setCanvasBackgroundImage] = useState(null); 
   const [elements, setElements] = useState([]);
   const [canvasBackgroundColor, setCanvasBackgroundColor] = useState("#ffffff");
   const [viewMode, setViewMode] = useState(false);
   const [selectedElementId, setSelectedElementId] = useState(null);
-
+  const [canvasDimensions, setCanvasDimensions] = useState({ width: 800, height: 600 });
+  const [favoriteDimensions, setFavoriteDimensions] = useState(
+    JSON.parse(localStorage.getItem("favoriteDimensions")) || []
+  );
+  const [favoriteDesigns, setFavoriteDesigns] = useState(
+    JSON.parse(localStorage.getItem("favoriteDesigns")) || []
+  );
+  const handleBackgroundImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => setCanvasBackgroundImage(event.target.result);
+      reader.readAsDataURL(file);
+    }
+  };
+  const saveFavoriteDesign = () => {
+    const design = {
+      id: Date.now(),
+      elements,
+      canvasBackgroundColor,
+      canvasBackgroundImage,
+      canvasDimensions,
+    };
+    const updatedDesigns = [...favoriteDesigns, design];
+    setFavoriteDesigns(updatedDesigns);
+    localStorage.setItem("favoriteDesigns", JSON.stringify(updatedDesigns));
+  };
+  const applyFavoriteDesign = (design) => {
+    setElements(design.elements);
+    setCanvasBackgroundColor(design.canvasBackgroundColor);
+    setCanvasBackgroundImage(design.canvasBackgroundImage);
+    setCanvasDimensions(design.canvasDimensions);
+  };
   const removeElement = (id) => {
     setElements((prev) => prev.filter((el) => el.id !== id));
     if (selectedElementId === id) setSelectedElementId(null);
+  };
+  const handleDimensionChange = (e) => {
+    const { name, value } = e.target;
+    setCanvasDimensions((prev) => ({ ...prev, [name]: parseInt(value) || 0 }));
   };
 
   const removeAllElements = () => {
@@ -37,6 +74,16 @@ const App = () => {
       console.log("Toggling viewMode, new value:", !prev);
       return !prev;
     });
+  };
+  const saveFavoriteDimension = () => {
+    const newFavorite = { ...canvasDimensions, id: Date.now() };
+    const updatedFavorites = [...favoriteDimensions, newFavorite];
+    setFavoriteDimensions(updatedFavorites);
+    localStorage.setItem("favoriteDimensions", JSON.stringify(updatedFavorites));
+  };
+
+  const applyFavoriteDimension = (dim) => {
+    setCanvasDimensions({ width: dim.width, height: dim.height });
   };
 
   const addOrDuplicateElement = (type, config, options = {}) => {
@@ -79,9 +126,12 @@ const App = () => {
         removeAllElements={removeAllElements}
         updateElement={updateElement}
         canvasBackgroundColor={canvasBackgroundColor}
+        canvasBackgroundImage={canvasBackgroundImage}
+          handleBackgroundImageChange={handleBackgroundImageChange}
         viewMode={viewMode}
         selectedElementId={selectedElementId}
         setSelectedElementId={setSelectedElementId}
+        canvasDimensions={canvasDimensions}
       />
       <Panel
         setElements={addOrDuplicateElement}
@@ -104,8 +154,17 @@ const App = () => {
           setElements={setElements}
           canvasBackgroundColor={canvasBackgroundColor}
           handleBackgroundColorChange={handleBackgroundColorChange}
+          handleBackgroundImageChange={handleBackgroundImageChange}
           viewMode={viewMode}
           toggleViewMode={toggleViewMode}
+          canvasDimensions={canvasDimensions}
+          handleDimensionChange={handleDimensionChange}
+          favoriteDimensions={favoriteDimensions}
+          saveFavoriteDimension={saveFavoriteDimension}
+          applyFavoriteDimension={applyFavoriteDimension}
+          saveFavoriteDesign={saveFavoriteDesign}
+          favoriteDesigns={favoriteDesigns}
+          applyFavoriteDesign={applyFavoriteDesign}
         />
         <Routes>
           <Route path="/" element={<Editor />} />

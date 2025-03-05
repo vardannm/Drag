@@ -2,8 +2,6 @@ import React, { useState, useEffect } from "react";
 
 const TextConfig = ({ config, setConfig, handleDragStart, isEditingExisting }) => {
   const [localConfig, setLocalConfig] = useState(config);
-
-  // Sync local state with prop changes (e.g., when a new element is selected)
   useEffect(() => {
     setLocalConfig(config);
   }, [config]);
@@ -12,12 +10,9 @@ const TextConfig = ({ config, setConfig, handleDragStart, isEditingExisting }) =
     const { name, value } = e.target;
     setLocalConfig((prev) => ({ ...prev, [name]: value }));
   };
-
-  // Update parent state on blur (when user finishes typing)
   const handleBlur = () => {
     setConfig(localConfig);
   };
-
   return (
     <div className="config-section">
       <h4>Text Configuration</h4>

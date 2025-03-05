@@ -15,13 +15,15 @@ const Canvas = ({
   viewMode,
   selectedElementId,
   setSelectedElementId,
+  canvasBackgroundImage,
+  canvasDimensions = { width: 800, height: 600 }, // Default fallback
 }) => {
   const [alignmentLines, setAlignmentLines] = useState([]);
   const { setNodeRef } = useDroppable({ id: "canvas" });
 
   const handleDragMove = (event) => {
     const { active, delta } = event;
-    const snapThreshold = 10; // Reduced for precision; adjustable
+    const snapThreshold = 10;
     const draggingElement = elements.find((el) => el.id === active.id);
     if (!draggingElement) {
       setAlignmentLines([]);
@@ -31,16 +33,15 @@ const Canvas = ({
     const newX = draggingElement.position.x + delta.x;
     const newY = draggingElement.position.y + delta.y;
     const newRotation = draggingElement.rotation || 0;
-    const { width = 100, height = 50 } = draggingElement.config || {}; // Default size if not provided
+    const { width = 100, height = 50 } = draggingElement.size || {};
 
     const lines = [];
     elements.forEach((el) => {
       if (el.id !== active.id) {
         const { x: otherX, y: otherY } = el.position;
-        const { width: otherWidth = 100, height: otherHeight = 50 } = el.config || {};
+        const { width: otherWidth = 100, height: otherHeight = 50 } = el.size || {};
         const otherRotation = el.rotation || 0;
 
-        // Horizontal alignments (top, center, bottom)
         const draggingTop = newY;
         const draggingCenterY = newY + height / 2;
         const draggingBottom = newY + height;
@@ -58,7 +59,6 @@ const Canvas = ({
           lines.push({ type: "horizontal", position: otherBottom });
         }
 
-        // Vertical alignments (left, center, right)
         const draggingLeft = newX;
         const draggingCenterX = newX + width / 2;
         const draggingRight = newX + width;
@@ -76,7 +76,6 @@ const Canvas = ({
           lines.push({ type: "vertical", position: otherRight });
         }
 
-        // Diagonal (45° or 135°) with tolerance
         const dx = Math.abs(draggingCenterX - otherCenterX);
         const dy = Math.abs(draggingCenterY - otherCenterY);
         if (dx > 0 && dy > 0 && Math.abs(dx - dy) < snapThreshold * 2) {
@@ -88,19 +87,18 @@ const Canvas = ({
           });
         }
 
-        // Rotation snap
         if (Math.abs(newRotation - otherRotation) < 5) {
           lines.push({ type: "rotation", position: otherY, rotation: otherRotation });
         }
       }
     });
 
-    setAlignmentLines(lines.slice(0, 5)); // Limit to 5 lines for performance
+    setAlignmentLines(lines.slice(0, 5));
   };
 
   const handleDragEnd = (event) => {
     const { active, delta } = event;
-    const snapThreshold = 5; // Tighter for final snap
+    const snapThreshold = 5;
 
     setElements((prev) =>
       prev.map((el) => {
@@ -108,15 +106,13 @@ const Canvas = ({
           let newX = el.position.x + delta.x;
           let newY = el.position.y + delta.y;
           let newRotation = el.rotation || 0;
-          const { width = 100, height = 50 } = el.config || {};
+          const { width = 100, height = 50 } = el.size || {};
 
           prev.forEach((otherEl) => {
             if (otherEl.id !== active.id) {
               const { x: otherX, y: otherY } = otherEl.position;
-              const { width: otherWidth = 100, height: otherHeight = 50 } = otherEl.config || {};
+              const { width: otherWidth = 100, height: otherHeight = 50 } = otherEl.size || {};
               const otherRotation = otherEl.rotation || 0;
-
-              // Snap to horizontal
               if (Math.abs(newY - otherY) < snapThreshold) newY = otherY;
               if (Math.abs(newY + height / 2 - (otherY + otherHeight / 2)) < snapThreshold) {
                 newY = otherY + otherHeight / 2 - height / 2;
@@ -125,7 +121,6 @@ const Canvas = ({
                 newY = otherY + otherHeight - height;
               }
 
-              // Snap to vertical
               if (Math.abs(newX - otherX) < snapThreshold) newX = otherX;
               if (Math.abs(newX + width / 2 - (otherX + otherWidth / 2)) < snapThreshold) {
                 newX = otherX + otherWidth / 2 - width / 2;
@@ -134,7 +129,6 @@ const Canvas = ({
                 newX = otherX + otherWidth - width;
               }
 
-              // Snap rotation
               if (Math.abs(newRotation - otherRotation) < 5) newRotation = otherRotation;
             }
           });
@@ -171,7 +165,14 @@ const Canvas = ({
         className="canvas"
         onDrop={handleDrop}
         onDragOver={(e) => e.preventDefault()}
-        style={{ backgroundColor: canvasBackgroundColor }}
+        style={{
+          backgroundColor: canvasBackgroundImage ? "transparent" : canvasBackgroundColor,
+          backgroundImage: canvasBackgroundImage ? `url(${canvasBackgroundImage})` : "none",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          width: `${canvasDimensions.width}px`,
+          height: `${canvasDimensions.height}px`,
+        }}
       >
         {alignmentLines.map((line, index) => (
           <AlignmentLine
