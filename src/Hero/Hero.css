@@ -45,16 +45,14 @@
     display: flex;
     width: 100%;
     flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    padding: 0px 120px 0 100px;
+    
     background: linear-gradient(135deg, #00b8b8, #787878);
   }
   
   .content h1 {
     font-size: 48px;
     font-weight: bold;
-    color: #101a24;
+    color:rgb(255, 255, 255);
     margin-bottom: 20px;
     text-transform: uppercase;
     letter-spacing: 2px;
@@ -136,7 +134,31 @@
   .dropdown-item:hover {
     background: #f1f1f1;
   }
-  
+  .back-button {
+    display: inline-block;
+    margin-bottom:15px;
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    color: #ffffff;
+    background-color: #007bff; /* Vibrant blue */
+    border: none;
+    border-radius: 8px; /* Smooth, rounded corners */
+    text-decoration: none;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+    transition: all 0.3s ease;
+  }
+  .back-button:hover{
+    background-color: #0056b3; /* Slightly darker blue on hover */
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15); /* Enhanced shadow on hover */
+    transform: translateY(-2px);
+  }
+  .back-button:active{
+    background-color: #004085; /* Darkest blue for active state */
+    transform: translateY(0); /* Reset lift when clicked */
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+  }
   .dropdown-icon {
     margin-right: 10px;
   }

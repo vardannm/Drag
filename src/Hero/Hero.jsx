@@ -1,22 +1,16 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { FaUser, FaSignOutAlt } from 'react-icons/fa';
+import  { useState, useEffect, useRef } from "react";
+import { FaUser, FaSignOutAlt } from "react-icons/fa";
+import { NavLink, Outlet } from "react-router-dom";
+import Breadcrumbs from "../components/BreadCrumbs";
 import "./Hero.css";
-import DeviceContent from '../pages/Device';
-import SlidesContent from '../pages/SlidesContent';
-import TemplatesContent from '../pages/TemplatesContent';
-import App from '../App';
+
 function Hero() {
   const [isOpen, setIsOpen] = useState(false);
-  const [activeContent, setActiveContent] = useState('welcome'); // Default to welcome content
-  const dropdownRef = useRef(null); 
+  const dropdownRef = useRef(null);
   const userInfoRef = useRef(null);
 
   const toggleDropdown = () => {
     setIsOpen(!isOpen);
-  };
-
-  const handleButtonClick = (content) => {
-    setActiveContent(content);
   };
 
   useEffect(() => {
@@ -31,10 +25,10 @@ function Hero() {
       }
     };
     if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener("mousedown", handleClickOutside);
     }
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isOpen]);
 
@@ -48,7 +42,6 @@ function Hero() {
           </div>
         </div>
 
-        {/* Dropdown Menu */}
         {isOpen && (
           <div className="dropdown-menu" ref={dropdownRef}>
             <div className="dropdown-item">
@@ -62,21 +55,14 @@ function Hero() {
           </div>
         )}
 
-        <button className="sidebar-button" onClick={() => handleButtonClick('device')}>Device</button>
-        <button className="sidebar-button" onClick={() => handleButtonClick('slides')}>Slides</button>
-        <button className="sidebar-button" onClick={() => handleButtonClick('templates')}>Templates</button>
+        <NavLink to="/device" className="sidebar-button">Device</NavLink>
+        <NavLink to="/slides" className="sidebar-button">Slides</NavLink>
+        <NavLink to="/templates" className="sidebar-button">Templates</NavLink>
       </div>
 
       <div className="content">
-        {activeContent === 'welcome' && (
-          <div className='content-text'>
-            <h1>Welcome to ScreenCanvas</h1>
-            <p>We control</p>
-          </div>
-        )}
-        {activeContent === 'device' && <DeviceContent />}
-        {activeContent === 'slides' && <SlidesContent />}
-        {activeContent === 'templates' && <TemplatesContent />}
+        <Breadcrumbs /> {/* Breadcrumbs at the top of content */}
+        <Outlet />
       </div>
     </div>
   );
