@@ -1,0 +1,66 @@
+/* SlidesContent.css */
+.slides-content {
+    padding: 20px;
+  }
+  
+  .slide-creator {
+    margin-bottom: 40px;
+  }
+  
+  .slide-name-input {
+    padding: 8px;
+    margin-bottom: 10px;
+    width: 200px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+  }
+  
+  .image-selector {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  
+  .image-option {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  
+  .thumbnail {
+    width: 50px;
+    height: 50px;
+    object-fit: cover;
+    border-radius: 5px;
+  }
+  
+  .add-slide-button {
+    padding: 10px 20px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .add-slide-button:hover {
+    background-color: #218838;
+  }
+  
+  .slides-list {
+    margin-top: 20px;
+  }
+  
+  .slide-item {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+  }
+  
+  .slide-images {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+  }

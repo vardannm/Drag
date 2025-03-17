@@ -1,19 +1,24 @@
-import React from 'react';
+// DeviceDetail.jsx
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Slider from 'react-slick';
-import DeviceJson from '../data/DeviceData.json'
+import DeviceJson from '../data/DeviceData.json';
+import { getSlidesData } from '../pages/SlidesContent'; // Import slides data
 import './DeviceDetail.css';
+
 function DeviceDetail() {
-  const { id } = useParams(); // Get device ID from URL
+  const { id } = useParams();
   const navigate = useNavigate();
   
-  // Find the device using the ID from the URL
   const device = DeviceJson.find(device => device.id === parseInt(id));
+  const availableSlides = getSlidesData(); // Get available slides
+  const [selectedSlideId, setSelectedSlideId] = useState(device.selectedSlideId || availableSlides[0].id); // Default to first slide or device's current
 
-  // If the device is not found, you can display a fallback message
   if (!device) {
     return <p>Device not found</p>;
   }
+
+  const selectedSlide = availableSlides.find(slide => slide.id === selectedSlideId);
 
   // Slider settings
   const settings = {
@@ -21,11 +26,16 @@ function DeviceDetail() {
     infinite: true,
     speed: 500,
     slidesToShow: 1,
-    slidesToScroll: 1
+    slidesToScroll: 1,
   };
 
   const handleBackClick = () => {
-    navigate('/device'); // Go back to device list
+    navigate('/device');
+  };
+
+  const handleSlideChange = (e) => {
+    setSelectedSlideId(parseInt(e.target.value));
+    // Here you could also save this to some persistent state or backend
   };
 
   return (
@@ -34,17 +44,29 @@ function DeviceDetail() {
       <h2>{device.name} - Active Slide</h2>
       <div className="slide-view">
         <Slider {...settings}>
-          {device.images.map((image, index) => (
+          {selectedSlide.images.map((image, index) => (
             <div key={index}>
               <img src={image} alt={`Slide ${index + 1}`} className="slide-image" />
             </div>
           ))}
         </Slider>
       </div>
+      
+
+      <div className="slide-selector">
+        <h3>Choose Slide:</h3>
+        <select value={selectedSlideId} onChange={handleSlideChange}>
+          {availableSlides.map(slide => (
+            <option key={slide.id} value={slide.id}>
+              {slide.name}
+            </option>
+          ))}
+        </select>
+      </div>
+
       <p>Location: {device.location}</p>
       <p>Status: {device.status}</p>
       <p>Last Update: {device.lastUpdate}</p>
-      <div></div>
     </div>
   );
 }

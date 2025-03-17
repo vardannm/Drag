@@ -6,11 +6,11 @@
     "status": "Active",
     "lastUpdate": "2025-03-09 10:30 AM",
     "images": [
-      "/slide1.png",
-      "/slides/slide2.png",
-      "/slides/slide3.png",
-      "/slides/slide4.png",
-      "/slides/slide5.png"
+      "/src/assets/slides/slide1.png",
+      "/src/assets/slides/slide2.png",
+      "/src/assets/slides/slide3.png",
+      "/src/assets/slides/slide4.png",
+      "/src/assets/slides/slide5.png"
     ]
   },
   {
@@ -20,11 +20,11 @@
     "status": "Active",
     "lastUpdate": "2025-03-09 10:28 AM",
     "images": [
-      "/slide1.png",
-      "/slides/slide2.png",
-      "/slides/slide3.png",
-      "/slides/slide4.png",
-      "/slides/slide5.png"
+      "/src/assets/slides/slide1.png",
+      "/src/assets/slides/slide2.png",
+      "/src/assets/slides/slide3.png",
+      "/src/assets/slides/slide4.png",
+      "/src/assets/slides/slide5.png"
     ]
   },
   {
@@ -34,11 +34,11 @@
     "status": "Inactive",
     "lastUpdate": "2025-03-09 09:15 AM",
     "images": [
-      "/slide1.png",
-      "/slides/slide2.png",
-      "/slides/slide3.png",
-      "/slides/slide4.png",
-      "/slides/slide5.png"
+      "/src/assets/slides/slide1.png",
+      "/src/assets/slides/slide2.png",
+      "/src/assets/slides/slide3.png",
+      "/src/assets/slides/slide4.png",
+      "/src/assets/slides/slide5.png"
     ]
   },
   {
@@ -48,11 +48,11 @@
     "status": "Active",
     "lastUpdate": "2025-03-09 10:29 AM",
     "images": [
-      "/slide1.png",
-      "/slides/slide2.png",
-      "/slides/slide3.png",
-      "/slides/slide4.png",
-      "/slides/slide5.png"
+      "/src/assets/slides/slide1.png",
+      "/src/assets/slides/slide2.png",
+      "/src/assets/slides/slide3.png",
+      "/src/assets/slides/slide4.png",
+      "/src/assets/slides/slide5.png"
     ]
   },
   {
@@ -62,11 +62,11 @@
     "status": "Inactive",
     "lastUpdate": "2025-03-09 08:45 AM",
     "images": [
-      "/slide1.png",
-      "/slides/slide2.png",
-      "/slides/slide3.png",
-      "/slides/slide4.png",
-      "/slides/slide5.png"
+      "/src/assets/slides/slide1.png",
+      "/src/assets/slides/slide2.png",
+      "/src/assets/slides/slide3.png",
+      "/src/assets/slides/slide4.png",
+      "/src/assets/slides/slide5.png"
     ]
   }
 ]

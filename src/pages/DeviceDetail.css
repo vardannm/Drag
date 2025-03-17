@@ -13,6 +13,7 @@
   .slide-view {
     max-width: 600px;
     margin: 0 auto;
+    border:5px solid rgb(8, 89, 182);
   }
   
   .slide-image {
