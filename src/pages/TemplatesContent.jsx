@@ -14,7 +14,7 @@ function TemplatesContent() {
     <div className="templates-content">
       <h1>Templates</h1>
       <Link to="/templates/new" target="_blank" rel="noopener noreferrer">
-        <button>Create New Template</button>
+        <button className="templateButton">Create New Template</button>
       </Link>
       <div className="template-list">
         {templateFiles.map((template) => (

@@ -46,7 +46,7 @@
     width: 100%;
     flex-direction: column;
     
-    background: linear-gradient(135deg, #00b8b8, #787878);
+    background:rgb(40, 151, 118);
   }
   
   .content h1 {
