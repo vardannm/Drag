@@ -16,7 +16,7 @@ const Canvas = ({
   selectedElementId,
   setSelectedElementId,
   canvasBackgroundImage,
-  canvasDimensions = { width: 800, height: 600 }, // Default fallback
+  canvasDimensions = { width: 800, height: 600 },
 }) => {
   const [alignmentLines, setAlignmentLines] = useState([]);
   const { setNodeRef } = useDroppable({ id: "canvas" });
@@ -144,8 +144,17 @@ const Canvas = ({
   const handleDrop = (event) => {
     event.preventDefault();
     const type = event.dataTransfer.getData("type");
-    const config = JSON.parse(event.dataTransfer.getData("config"));
-    addOrDuplicateElement(type, config, { isDuplicate: false });
+    let config;
+    try {
+      config = JSON.parse(event.dataTransfer.getData("config"));
+    } catch (error) {
+      console.error("Failed to parse config:", error);
+      return;
+    }
+    const canvasRect = event.currentTarget.getBoundingClientRect();
+    const dropX = event.clientX - canvasRect.left;
+    const dropY = event.clientY - canvasRect.top;
+    addOrDuplicateElement(type, config, { isDuplicate: false, dropPosition: { x: dropX, y: dropY } });
   };
 
   const duplicateElement = (id) => {
@@ -172,18 +181,9 @@ const Canvas = ({
           backgroundPosition: "center",
           width: `${canvasDimensions.width}px`,
           height: `${canvasDimensions.height}px`,
+          position: "relative",
         }}
       >
-        {alignmentLines.map((line, index) => (
-          <AlignmentLine
-            key={index}
-            type={line.type}
-            position={line.position}
-            x={line.x}
-            y={line.y}
-            rotation={line.rotation}
-          />
-        ))}
         {elements.map((el) => (
           <CanvasItem
             key={el.id}
@@ -194,6 +194,16 @@ const Canvas = ({
             viewMode={viewMode}
             selectedElementId={selectedElementId}
             setSelectedElementId={setSelectedElementId}
+          />
+        ))}
+        {alignmentLines.map((line, index) => (
+          <AlignmentLine
+            key={index}
+            type={line.type}
+            position={line.position}
+            x={line.x}
+            y={line.y}
+            rotation={line.rotation}
           />
         ))}
         {elements.length > 0 && !viewMode && (

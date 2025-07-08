@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import TextConfig from "./TextConfig";
 import ImageConfig from "./ImageConfig";
 import ListConfig from "./ListConfig";
+import ShapeConfig from "./ShapeConfig";
 import "./Panel.css";
 
 const Panel = ({
@@ -19,6 +20,14 @@ const Panel = ({
     color: "#000000",
     fontSize: "16",
     fontWeight: "normal",
+    shapeType: "rectangle",
+    fill: "#C4C4C4",
+    stroke: "#000000",
+    strokeWidth: 2,
+    width: 100,
+    height: 100,
+    cornerRadius: 0,
+    sides: 3,
   });
   const [editingElementId, setEditingElementId] = useState(null);
 
@@ -33,6 +42,14 @@ const Panel = ({
       color: "#000000",
       fontSize: "16",
       fontWeight: "normal",
+      shapeType: "rectangle",
+      fill: "#C4C4C4",
+      stroke: "#000000",
+      strokeWidth: 2,
+      width: 100,
+      height: 100,
+      cornerRadius: 0,
+      sides: 3,
     });
   };
 
@@ -54,6 +71,14 @@ const Panel = ({
       color: "#000000",
       fontSize: "16",
       fontWeight: "normal",
+      shapeType: "rectangle",
+      fill: "#C4C4C4",
+      stroke: "#000000",
+      strokeWidth: 2,
+      width: 100,
+      height: 100,
+      cornerRadius: 0,
+      sides: 3,
     });
     setSelectedElementId(null);
   };
@@ -105,6 +130,14 @@ const Panel = ({
               isEditingExisting={true}
             />
           )}
+          {editingElement.type === "shape" && (
+            <ShapeConfig
+              config={editingElement.config}
+              setConfig={handleConfigChange}
+              handleDragStart={handleDragStart}
+              isEditingExisting={true}
+            />
+          )}
           <div className="edit-controls">
             <button onClick={handleSave}>Save</button>
             <button onClick={handleClose}>Close</button>
@@ -137,6 +170,14 @@ const Panel = ({
               isEditingExisting={true}
             />
           )}
+          {selectedElement.type === "shape" && (
+            <ShapeConfig
+              config={selectedElement.config}
+              setConfig={handleConfigChange}
+              handleDragStart={handleDragStart}
+              isEditingExisting={true}
+            />
+          )}
           <button onClick={deselectElement}>Add New Element</button>
         </div>
       ) : (
@@ -145,6 +186,7 @@ const Panel = ({
             <button onClick={() => setSelectedType("text")}>Add Text</button>
             <button onClick={() => setSelectedType("image")}>Add Image</button>
             <button onClick={() => setSelectedType("list")}>Add List</button>
+            <button onClick={() => setSelectedType("shape")}>Add Shape</button>
           </div>
 
           {selectedType === "text" && (
@@ -171,6 +213,14 @@ const Panel = ({
               isEditingExisting={false}
             />
           )}
+          {selectedType === "shape" && (
+            <ShapeConfig
+              config={newElementConfig}
+              setConfig={handleConfigChange}
+              handleDragStart={handleDragStart}
+              isEditingExisting={false}
+            />
+          )}
         </>
       )}
 
@@ -185,6 +235,7 @@ const Panel = ({
                 {el.type === "text" && `Text: ${el.config.content || "Untitled"}`}
                 {el.type === "image" && `Image: ${el.config.imageUrl?.split('/').pop() || "Unnamed"}`}
                 {el.type === "list" && `List: ${el.config.items?.length || 0} items`}
+                {el.type === "shape" && `Shape: ${el.config.shapeType.charAt(0).toUpperCase() + el.config.shapeType.slice(1)}`}
               </span>
               <button onClick={() => handleEditClick(el.id)}>Edit</button>
               <button onClick={() => removeElement(el.id)}>Remove</button>
