@@ -1,0 +1,74 @@
+{
+  "elements": [
+    {
+      "id": 1741177505292,
+      "type": "text",
+      "config": {
+        "content": "sadasdasd",
+        "color": "#000000",
+        "fontSize": "31",
+        "fontWeight": "normal"
+      },
+      "position": {
+        "x": 95,
+        "y": 243
+      },
+      "size": null,
+      "rotation": 0
+    },
+    {
+      "id": 1741177513840,
+      "type": "list",
+      "config": {
+        "content": "",
+        "color": "#000000",
+        "fontSize": "16",
+        "fontWeight": "normal",
+        "items": [
+          {
+            "text": "asdasd",
+            "color": "#000000"
+          },
+          {
+            "text": "asdasd",
+            "color": "#000000"
+          },
+          {
+            "text": "asdasd",
+            "color": "#000000"
+          }
+        ]
+      },
+      "position": {
+        "x": 404,
+        "y": 362
+      },
+      "size": {
+        "width": 266,
+        "height": 264
+      },
+      "rotation": 0
+    },
+    {
+      "id": 1741178013633,
+      "type": "text",
+      "config": {
+        "content": "asdsadasd",
+        "color": "#000000",
+        "fontSize": "26",
+        "fontWeight": "normal"
+      },
+      "position": {
+        "x": 889,
+        "y": 200
+      },
+      "size": null,
+      "rotation": 0
+    }
+  ],
+  "canvasBackgroundColor": "#ffffff",
+  "canvasDimensions": {
+    "width": 800,
+    "height": 600
+  }
+}
