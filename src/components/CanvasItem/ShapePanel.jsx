@@ -11,22 +11,14 @@ const shapes = [
 
 export default function ShapePanel({ onDragStart, onUploadImage }) {
   return (
-    <div style={{ padding: 10, borderRight: '1px solid #ccc', width: 180 }}>
+    <div className="shape-panel">
       <h3>Shapes</h3>
       {shapes.map(shape => (
         <div
           key={shape.type}
           draggable
           onDragStart={e => onDragStart(e, shape.type)}
-          style={{
-            padding: 8,
-            margin: '10px 0',
-            border: '1px solid #999',
-            cursor: 'grab',
-            textAlign: 'center',
-            userSelect: 'none',
-            backgroundColor: '#f0f0f0',
-          }}
+          className="shape-item"
         >
           {shape.label}
         </div>
@@ -36,15 +28,7 @@ export default function ShapePanel({ onDragStart, onUploadImage }) {
 
       <label
         htmlFor="upload-image"
-        style={{
-          display: 'block',
-          padding: '8px',
-          border: '1px solid #999',
-          backgroundColor: '#eee',
-          cursor: 'pointer',
-          textAlign: 'center',
-          userSelect: 'none',
-        }}
+        className="upload-button"
       >
         Upload Image
       </label>
@@ -52,7 +36,7 @@ export default function ShapePanel({ onDragStart, onUploadImage }) {
         type="file"
         id="upload-image"
         accept="image/*"
-        style={{ display: 'none' }}
+        className="upload-input"
         onChange={onUploadImage}
       />
     </div>

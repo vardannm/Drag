@@ -14,7 +14,7 @@ import {
 } from 'react-konva';
 import ShapePanel from './ShapePanel';
 import { ChromePicker } from 'react-color';
-
+import './CanvasEditor.css'
 // Helper hook to load images
 const useImage = (url) => {
   const [image, setImage] = React.useState(null);
@@ -46,6 +46,8 @@ const [historyStep, setHistoryStep] = useState(-1);
 const [selectedIds, setSelectedIds] = useState([]);
 const [showGrid, setShowGrid] = useState(true);
 const [canvasBg, setCanvasBg] = useState('#ffffff');
+const [canvasWidth, setCanvasWidth] = useState(900);
+const [canvasHeight, setCanvasHeight] = useState(600);
   const stageRef = useRef();
   const trRef = useRef();
 const pushToHistory = (newShapes) => {
@@ -64,7 +66,29 @@ const GRID_SIZE = 20;
   function handleDragStart(e, type) {
     e.dataTransfer.setData('shapeType', type);
   }
+const adjustCanvasSize = (newWidth, newHeight) => {
+    const minWidth = 300; // Minimum canvas width
+    const minHeight = 200; // Minimum canvas height
+    const boundedWidth = Math.max(minWidth, newWidth);
+    const boundedHeight = Math.max(minHeight, newHeight);
 
+    // Adjust shapes to stay within new bounds
+    const updatedShapes = shapes.map(shape => {
+      const shapeWidth = shape.width || shape.radius * 2 || 100;
+      const shapeHeight = shape.height || shape.radius * 2 || 100;
+      const newX = Math.min(shape.x, boundedWidth - shapeWidth);
+      const newY = Math.min(shape.y, boundedHeight - shapeHeight);
+      return {
+        ...shape,
+        x: Math.max(0, newX),
+        y: Math.max(0, newY),
+      };
+    });
+
+    setCanvasWidth(boundedWidth);
+    setCanvasHeight(boundedHeight);
+    pushToHistory(updatedShapes);
+  };
 function handleDrop(e) {
   e.preventDefault();
   const stage = stageRef.current.getStage();
@@ -451,11 +475,12 @@ const alignShapes = (direction) => {
 const renderGridLines = () => {
   const lines = [];
 
-  for (let i = GRID_SIZE; i < 900; i += GRID_SIZE) {
+  // Vertical lines
+  for (let i = GRID_SIZE; i < canvasWidth; i += GRID_SIZE) {
     lines.push(
       <Line
         key={`v-${i}`}
-        points={[i, 0, i, 600]}
+        points={[i, 0, i, canvasHeight]}
         stroke="#ddd"
         strokeWidth={1}
         listening={false}
@@ -463,11 +488,12 @@ const renderGridLines = () => {
     );
   }
 
-  for (let j = GRID_SIZE; j < 600; j += GRID_SIZE) {
+  // Horizontal lines
+  for (let j = GRID_SIZE; j < canvasHeight; j += GRID_SIZE) {
     lines.push(
       <Line
         key={`h-${j}`}
-        points={[0, j, 900, j]}
+        points={[0, j, canvasWidth, j]}
         stroke="#ddd"
         strokeWidth={1}
         listening={false}
@@ -534,29 +560,28 @@ const loadCanvas = () => {
 };
 
 return (
-  <div style={{ display: 'flex', height: '100vh', fontFamily: 'sans-serif' }}>
+  <div className="canvas-editor">
     <ShapePanel onDragStart={handleDragStart} onUploadImage={handleUploadImage} />
 
     {/* Canvas Area */}
     <div
+      className="canvas-area"
       onDrop={handleDrop}
       onDragOver={(e) => e.preventDefault()}
-      style={{ flexGrow: 1, border: '1px solid #ccc', position: 'relative' }}
     >
-      <Stage width={900} height={600} ref={stageRef}>
+      <Stage width={canvasWidth} height={canvasHeight} ref={stageRef}>
         <Layer>
-  <Rect
-    x={0}
-    y={0}
-    width={900}
-    height={600}
-    fill={canvasBg}
-    listening={false}
-  />
-  {showGrid && renderGridLines()}
-  {shapes.map(shape => renderShape(shape))}
-</Layer>
-
+          <Rect
+            x={0}
+            y={0}
+            width={canvasWidth}
+            height={canvasHeight}
+            fill={canvasBg}
+            listening={false}
+          />
+          {showGrid && renderGridLines()}
+          {shapes.map(shape => renderShape(shape))}
+        </Layer>
         <Layer>
           <Transformer
             ref={trRef}
@@ -568,55 +593,75 @@ return (
     </div>
 
     {/* Right Panel */}
-    <div
-      style={{
-        width: 300,
-        padding: 10,
-        borderLeft: '1px solid #ccc',
-        background: '#fafafa',
-        overflowY: 'auto',
-      }}
-    >
+    <div className="right-panel">
       {/* Top Utility Controls */}
-      <div style={{ marginBottom: 10, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+      <div className="button-group">
         <button onClick={undo} disabled={historyStep <= 0}>Undo</button>
         <button onClick={redo} disabled={historyStep >= history.length - 1}>Redo</button>
         <button onClick={exportToPng}>Export PNG</button>
-        <button onClick={() => {
-          const filtered = shapes.filter(s => !selectedIds.includes(s.id));
-          pushToHistory(filtered);
-          setSelectedIds([]);
-        }} disabled={selectedIds.length === 0}>Delete Selected</button>
-        <button onClick={() => {
-          pushToHistory([]);
-          setSelectedId(null);
-          setSelectedIds([]);
-        }}>Delete All</button>
+        <button
+          onClick={() => {
+            const filtered = shapes.filter(s => !selectedIds.includes(s.id));
+            pushToHistory(filtered);
+            setSelectedIds([]);
+          }}
+          disabled={selectedIds.length === 0}
+        >
+          Delete Selected
+        </button>
+        <button
+          onClick={() => {
+            pushToHistory([]);
+            setSelectedId(null);
+            setSelectedIds([]);
+          }}
+        >
+          Delete All
+        </button>
+      </div>
+
+      {/* Canvas Size */}
+      <h3>Canvas Size</h3>
+      <div className="button-group">
+        <button onClick={() => adjustCanvasSize(canvasWidth + 50, canvasHeight)}>+ Width</button>
+        <button onClick={() => adjustCanvasSize(canvasWidth - 50, canvasHeight)}>- Width</button>
+        <button onClick={() => adjustCanvasSize(canvasWidth, canvasHeight + 50)}>+ Height</button>
+        <button onClick={() => adjustCanvasSize(canvasWidth, canvasHeight - 50)}>- Height</button>
+      </div>
+      <div>
+        <label>Width: {canvasWidth}px</label>
+        <input
+          type="number"
+          min="300"
+          value={canvasWidth}
+          onChange={(e) => adjustCanvasSize(Number(e.target.value), canvasHeight)}
+        />
+        <label>Height: {canvasHeight}px</label>
+        <input
+          type="number"
+          min="200"
+          value={canvasHeight}
+          onChange={(e) => adjustCanvasSize(canvasWidth, Number(e.target.value))}
+        />
       </div>
 
       {/* Shape Properties */}
       {selectedShape ? (
         <>
           <h3>Properties</h3>
-
           <label>Fill Color</label>
           <ChromePicker
             color={selectedShape.fill}
             onChange={(color) => updateShape(selectedId, { fill: color.hex })}
             disableAlpha
-            styles={{ default: { picker: { width: '100%' } } }}
-            disabled={selectedShape.type === 'line' || selectedShape.type === 'image'}
           />
-
-          <label style={{ marginTop: 10 }}>Stroke Color</label>
+          <label>Stroke Color</label>
           <ChromePicker
             color={selectedShape.stroke}
             onChange={(color) => updateShape(selectedId, { stroke: color.hex })}
             disableAlpha
-            styles={{ default: { picker: { width: '100%' } } }}
           />
-
-          <label style={{ marginTop: 10 }}>Stroke Width</label>
+          <label>Stroke Width</label>
           <input
             type="number"
             min="0"
@@ -625,10 +670,8 @@ return (
             onChange={(e) =>
               updateShape(selectedId, { strokeWidth: Number(e.target.value) })
             }
-            style={{ width: '100%' }}
           />
-
-          <label style={{ marginTop: 10 }}>Rotation</label>
+          <label>Rotation</label>
           <input
             type="number"
             min="0"
@@ -637,20 +680,15 @@ return (
             onChange={(e) =>
               updateShape(selectedId, { rotation: Number(e.target.value) })
             }
-            style={{ width: '100%' }}
           />
-
-          {/* Text */}
           {selectedShape.type === 'text' && (
             <>
-              <label style={{ marginTop: 10 }}>Text</label>
+              <label>Text</label>
               <textarea
                 value={selectedShape.text}
                 onChange={(e) => updateShape(selectedId, { text: e.target.value })}
-                style={{ width: '100%', height: 60 }}
               />
-
-              <label style={{ marginTop: 10 }}>Font Size</label>
+              <label>Font Size</label>
               <input
                 type="number"
                 min="8"
@@ -659,15 +697,12 @@ return (
                 onChange={(e) =>
                   updateShape(selectedId, { fontSize: Number(e.target.value) })
                 }
-                style={{ width: '100%' }}
               />
             </>
           )}
-
-          {/* Image */}
           {selectedShape.type === 'image' && (
             <>
-              <label style={{ marginTop: 10 }}>Image URL</label>
+              <label>Image URL</label>
               <input
                 type="text"
                 value={selectedShape.imageUrl}
@@ -677,15 +712,12 @@ return (
                     imageObject: null,
                   })
                 }
-                style={{ width: '100%' }}
               />
             </>
           )}
-
-          {/* Line */}
           {selectedShape.type === 'line' && (
             <>
-              <label style={{ marginTop: 10 }}>Points (comma separated)</label>
+              <label>Points (comma separated)</label>
               <input
                 type="text"
                 value={selectedShape.points.join(',')}
@@ -698,7 +730,6 @@ return (
                     updateShape(selectedId, { points: pts });
                   }
                 }}
-                style={{ width: '100%' }}
               />
             </>
           )}
@@ -708,8 +739,8 @@ return (
       )}
 
       {/* Shape List */}
-      <h3 style={{ marginTop: 20 }}>Shapes List</h3>
-      <ul style={{ listStyle: 'none', padding: 0 }}>
+      <h3>Shapes List</h3>
+      <ul className="shape-list">
         {shapes.map((shape) => (
           <li
             key={shape.id}
@@ -717,48 +748,45 @@ return (
               setSelectedId(shape.id);
               setSelectedIds([shape.id]);
             }}
-            style={{
-              cursor: 'pointer',
-              padding: '4px 8px',
-              backgroundColor: selectedIds.includes(shape.id) ? '#ddd' : 'transparent',
-              borderRadius: 4,
-              marginBottom: 4,
-            }}
+            className={selectedIds.includes(shape.id) ? 'selected' : ''}
           >
             [{shape.type}] {shape.type === 'text' ? `"${shape.text}"` : shape.id}
           </li>
         ))}
       </ul>
-      <h3 style={{ marginTop: 20 }}>Canvas</h3>
-<label>Background Color</label>
-<ChromePicker
-  color={canvasBg}
-  onChange={(color) => setCanvasBg(color.hex)}
-  disableAlpha
-/><h3 style={{ marginTop: 20 }}>Align</h3>
-<div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
-  <button onClick={() => alignShapes('left')}>Left</button>
-  <button onClick={() => alignShapes('right')}>Right</button>
-  <button onClick={() => alignShapes('top')}>Top</button>
-  <button onClick={() => alignShapes('bottom')}>Bottom</button>
-  <button onClick={() => alignShapes('centerX')}>Center X</button>
-  <button onClick={() => alignShapes('centerY')}>Center Y</button>
-</div>
-<label style={{ marginTop: 20 }}>
-  <input
-    type="checkbox"
-    checked={showGrid}
-    onChange={() => setShowGrid(!showGrid)}
-  /> Show Grid
-</label>
-<div style={{ marginTop: 20 }}>
-  <button onClick={groupShapes}>Group</button>
-  <button onClick={ungroupShape}>Ungroup</button>
-  <button onClick={bringToFront}>Bring to Front</button>
-  <button onClick={sendToBack}>Send to Back</button>
-  <button onClick={saveCanvas}>Save</button>
-  <button onClick={loadCanvas}>Load</button>
-</div>
+
+      {/* Canvas Controls */}
+      <h3>Canvas</h3>
+      <label>Background Color</label>
+      <ChromePicker
+        color={canvasBg}
+        onChange={(color) => setCanvasBg(color.hex)}
+        disableAlpha
+      />
+      <h3>Align</h3>
+      <div className="button-group">
+        <button onClick={() => alignShapes('left')}>Left</button>
+        <button onClick={() => alignShapes('right')}>Right</button>
+        <button onClick={() => alignShapes('top')}>Top</button>
+        <button onClick={() => alignShapes('bottom')}>Bottom</button>
+        <button onClick={() => alignShapes('centerX')}>Center X</button>
+        <button onClick={() => alignShapes('centerY')}>Center Y</button>
+      </div>
+      <label className="checkbox-label">
+        <input
+          type="checkbox"
+          checked={showGrid}
+          onChange={() => setShowGrid(!showGrid)}
+        /> Show Grid
+      </label>
+      <div className="button-group">
+        <button onClick={groupShapes}>Group</button>
+        <button onClick={ungroupShape}>Ungroup</button>
+        <button onClick={bringToFront}>Bring to Front</button>
+        <button onClick={sendToBack}>Send to Back</button>
+        <button onClick={saveCanvas}>Save</button>
+        <button onClick={loadCanvas}>Load</button>
+      </div>
     </div>
   </div>
 );
