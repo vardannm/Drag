@@ -141,10 +141,10 @@
 }
 
 .right-panel .chrome-picker {
-  width: 100% !important;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   border-radius: 6px;
-  overflow: hidden;
+  overflow: visible;
+  margin-bottom: 10px;
 }
 
 .canvas-area > div {
@@ -262,4 +262,45 @@
   .shape-panel .upload-button {
     flex: 1 1 calc(50% - 10px);
   }
+}
+.text-control-row {
+  display: flex;
+  gap: 15px;
+  margin: 10px 0;
+}
+
+.text-control-group {
+  flex: 1;
+}
+
+.text-control-group label {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.text-control-group select,
+.text-control-group input {
+  width: 100%;
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+}
+
+.font-style-controls {
+  display: flex;
+  gap: 15px;
+  margin: 15px 0;
+  padding: 10px 0;
+  border-top: 1px solid #eee;
+  border-bottom: 1px solid #eee;
+}
+
+.font-style-controls label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+}
+.textContent{
+    padding: 4px;
 }
