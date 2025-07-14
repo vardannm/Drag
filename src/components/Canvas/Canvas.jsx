@@ -1,90 +1,170 @@
-import PropTypes from "prop-types";
+import React, { useState } from "react";
 import { DndContext, useDroppable } from "@dnd-kit/core";
-import CanvasItem from "./CanvasItem";
-import AlignmentLine from "./AlignmentLine";
+import CanvasItem from "../CanvasItem/CanvasItem";
+import AlignmentLine from "../Panel/AligmentLine";
+import "./Canvas.css";
 
 const Canvas = ({
   elements,
-  alignmentLine,
   setElements,
-  setAlignmentLine,
+  addOrDuplicateElement,
   removeElement,
   removeAllElements,
+  updateElement,
   canvasBackgroundColor,
-  handleResizeMouseDown,
+  viewMode,
+  selectedElementId,
+  setSelectedElementId,
+  canvasBackgroundImage,
+  canvasDimensions = { width: 800, height: 600 },
 }) => {
-  const { setNodeRef } = useDroppable({
-    id: "canvas",
-  });
+  const [alignmentLines, setAlignmentLines] = useState([]);
+  const { setNodeRef } = useDroppable({ id: "canvas" });
 
   const handleDragMove = (event) => {
     const { active, delta } = event;
     const snapThreshold = 10;
-    let alignment = null;
-
     const draggingElement = elements.find((el) => el.id === active.id);
-    if (!draggingElement) return;
+    if (!draggingElement) {
+      setAlignmentLines([]);
+      return;
+    }
 
     const newX = draggingElement.position.x + delta.x;
     const newY = draggingElement.position.y + delta.y;
+    const newRotation = draggingElement.rotation || 0;
+    const { width = 100, height = 50 } = draggingElement.size || {};
 
+    const lines = [];
     elements.forEach((el) => {
       if (el.id !== active.id) {
-        if (Math.abs(newY - el.position.y) < snapThreshold) {
-          alignment = { type: "horizontal", position: el.position.y };
+        const { x: otherX, y: otherY } = el.position;
+        const { width: otherWidth = 100, height: otherHeight = 50 } = el.size || {};
+        const otherRotation = el.rotation || 0;
+
+        const draggingTop = newY;
+        const draggingCenterY = newY + height / 2;
+        const draggingBottom = newY + height;
+        const otherTop = otherY;
+        const otherCenterY = otherY + otherHeight / 2;
+        const otherBottom = otherY + otherHeight;
+
+        if (Math.abs(draggingTop - otherTop) < snapThreshold) {
+          lines.push({ type: "horizontal", position: otherTop });
         }
-        if (Math.abs(newX - el.position.x) < snapThreshold) {
-          alignment = { type: "vertical", position: el.position.x };
+        if (Math.abs(draggingCenterY - otherCenterY) < snapThreshold) {
+          lines.push({ type: "horizontal", position: otherCenterY });
+        }
+        if (Math.abs(draggingBottom - otherBottom) < snapThreshold) {
+          lines.push({ type: "horizontal", position: otherBottom });
+        }
+
+        const draggingLeft = newX;
+        const draggingCenterX = newX + width / 2;
+        const draggingRight = newX + width;
+        const otherLeft = otherX;
+        const otherCenterX = otherX + otherWidth / 2;
+        const otherRight = otherX + otherWidth;
+
+        if (Math.abs(draggingLeft - otherLeft) < snapThreshold) {
+          lines.push({ type: "vertical", position: otherLeft });
+        }
+        if (Math.abs(draggingCenterX - otherCenterX) < snapThreshold) {
+          lines.push({ type: "vertical", position: otherCenterX });
+        }
+        if (Math.abs(draggingRight - otherRight) < snapThreshold) {
+          lines.push({ type: "vertical", position: otherRight });
+        }
+
+        const dx = Math.abs(draggingCenterX - otherCenterX);
+        const dy = Math.abs(draggingCenterY - otherCenterY);
+        if (dx > 0 && dy > 0 && Math.abs(dx - dy) < snapThreshold * 2) {
+          lines.push({
+            type: "diagonal",
+            x: draggingCenterX,
+            y: draggingCenterY,
+            rotation: dx > dy ? 45 : 135,
+          });
+        }
+
+        if (Math.abs(newRotation - otherRotation) < 5) {
+          lines.push({ type: "rotation", position: otherY, rotation: otherRotation });
         }
       }
     });
 
-    setAlignmentLine(alignment);
+    setAlignmentLines(lines.slice(0, 5));
   };
 
   const handleDragEnd = (event) => {
     const { active, delta } = event;
-    const snapThreshold = 10;
+    const snapThreshold = 5;
 
-    setElements((prev) => {
-      const newElements = prev.map((el) => {
+    setElements((prev) =>
+      prev.map((el) => {
         if (el.id === active.id) {
           let newX = el.position.x + delta.x;
           let newY = el.position.y + delta.y;
+          let newRotation = el.rotation || 0;
+          const { width = 100, height = 50 } = el.size || {};
 
-          // Apply snapping if within threshold
           prev.forEach((otherEl) => {
             if (otherEl.id !== active.id) {
-              if (Math.abs(newY - otherEl.position.y) < snapThreshold) {
-                newY = otherEl.position.y;
+              const { x: otherX, y: otherY } = otherEl.position;
+              const { width: otherWidth = 100, height: otherHeight = 50 } = otherEl.size || {};
+              const otherRotation = otherEl.rotation || 0;
+              if (Math.abs(newY - otherY) < snapThreshold) newY = otherY;
+              if (Math.abs(newY + height / 2 - (otherY + otherHeight / 2)) < snapThreshold) {
+                newY = otherY + otherHeight / 2 - height / 2;
               }
-              if (Math.abs(newX - otherEl.position.x) < snapThreshold) {
-                newX = otherEl.position.x;
+              if (Math.abs(newY + height - (otherY + otherHeight)) < snapThreshold) {
+                newY = otherY + otherHeight - height;
               }
+
+              if (Math.abs(newX - otherX) < snapThreshold) newX = otherX;
+              if (Math.abs(newX + width / 2 - (otherX + otherWidth / 2)) < snapThreshold) {
+                newX = otherX + otherWidth / 2 - width / 2;
+              }
+              if (Math.abs(newX + width - (otherX + otherWidth)) < snapThreshold) {
+                newX = otherX + otherWidth - width;
+              }
+
+              if (Math.abs(newRotation - otherRotation) < 5) newRotation = otherRotation;
             }
           });
 
-          return { ...el, position: { x: newX, y: newY } };
+          return { ...el, position: { x: newX, y: newY }, rotation: newRotation };
         }
         return el;
-      });
-      return [...newElements]; // Ensure a new array reference to trigger re-render
-    });
-    setAlignmentLine(null); // Reset alignment line
+      })
+    );
+    setAlignmentLines([]);
   };
 
   const handleDrop = (event) => {
     event.preventDefault();
     const type = event.dataTransfer.getData("type");
-    const config = JSON.parse(event.dataTransfer.getData("config"));
-    const newElement = {
-      id: Date.now(),
-      type,
-      config,
-      position: { x: event.nativeEvent.offsetX, y: event.nativeEvent.offsetY },
-      size: type === "text" ? null : { width: config.width || 200, height: config.height || "auto" },
-    };
-    setElements((prev) => [...prev, newElement]);
+    let config;
+    try {
+      config = JSON.parse(event.dataTransfer.getData("config"));
+    } catch (error) {
+      console.error("Failed to parse config:", error);
+      return;
+    }
+    const canvasRect = event.currentTarget.getBoundingClientRect();
+    const dropX = event.clientX - canvasRect.left;
+    const dropY = event.clientY - canvasRect.top;
+    addOrDuplicateElement(type, config, { isDuplicate: false, dropPosition: { x: dropX, y: dropY } });
+  };
+
+  const duplicateElement = (id) => {
+    const elementToDuplicate = elements.find((el) => el.id === id);
+    if (elementToDuplicate) {
+      addOrDuplicateElement(elementToDuplicate.type, elementToDuplicate.config, {
+        isDuplicate: true,
+        originalElement: elementToDuplicate,
+      });
+    }
   };
 
   return (
@@ -94,18 +174,39 @@ const Canvas = ({
         className="canvas"
         onDrop={handleDrop}
         onDragOver={(e) => e.preventDefault()}
-        style={{ backgroundColor: canvasBackgroundColor }}
+        style={{
+          backgroundColor: canvasBackgroundImage ? "transparent" : canvasBackgroundColor,
+          backgroundImage: canvasBackgroundImage ? `url(${canvasBackgroundImage})` : "none",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          width: `${canvasDimensions.width}px`,
+          height: `${canvasDimensions.height}px`,
+          position: "relative",
+        }}
       >
-        {alignmentLine && <AlignmentLine alignmentLine={alignmentLine} />}
         {elements.map((el) => (
           <CanvasItem
             key={el.id}
             element={el}
             removeElement={removeElement}
-            handleResizeMouseDown={handleResizeMouseDown}
+            duplicateElement={duplicateElement}
+            updateElement={updateElement}
+            viewMode={viewMode}
+            selectedElementId={selectedElementId}
+            setSelectedElementId={setSelectedElementId}
           />
         ))}
-        {elements.length > 0 && (
+        {alignmentLines.map((line, index) => (
+          <AlignmentLine
+            key={index}
+            type={line.type}
+            position={line.position}
+            x={line.x}
+            y={line.y}
+            rotation={line.rotation}
+          />
+        ))}
+        {elements.length > 0 && !viewMode && (
           <button className="remove-all-button" onClick={removeAllElements}>
             Remove Everything
           </button>
@@ -113,34 +214,6 @@ const Canvas = ({
       </div>
     </DndContext>
   );
-};
-
-Canvas.propTypes = {
-  elements: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
-      type: PropTypes.oneOf(["text", "image", "list"]).isRequired,
-      position: PropTypes.shape({
-        x: PropTypes.number.isRequired,
-        y: PropTypes.number.isRequired,
-      }).isRequired,
-      size: PropTypes.shape({
-        width: PropTypes.number,
-        height: PropTypes.number,
-      }),
-      config: PropTypes.object.isRequired,
-    })
-  ).isRequired,
-  alignmentLine: PropTypes.shape({
-    type: PropTypes.oneOf(["vertical", "horizontal"]).isRequired,
-    position: PropTypes.number.isRequired,
-  }),
-  setElements: PropTypes.func.isRequired,
-  setAlignmentLine: PropTypes.func.isRequired,
-  removeElement: PropTypes.func.isRequired,
-  removeAllElements: PropTypes.func.isRequired,
-  canvasBackgroundColor: PropTypes.string.isRequired,
-  handleResizeMouseDown: PropTypes.func.isRequired,
 };
 
 export default Canvas;

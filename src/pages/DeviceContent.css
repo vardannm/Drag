@@ -1,0 +1,59 @@
+/* DeviceContent.css */
+.device-content {
+    padding: 20px;
+  }
+  
+  .header-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  
+  .add-screen-button {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+  }
+  
+  .add-screen-button:hover {
+    background-color: #0056b3;
+  }
+  
+  .screen-grid {
+    display: grid;
+  grid-template-columns: auto auto auto;
+    gap: 20px;
+    margin-top: 20px;
+  }
+  
+  .screen-card {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .screen-card h3 {
+    margin: 0 0 10px 0;
+    color: #333;
+  }
+  
+  .screen-card p {
+    margin: 5px 0;
+    color: #666;
+  }
+  
+  .status-active {
+    color: #28a745;
+    font-weight: bold;
+  }
+  
+  .status-inactive {
+    color: #dc3545;
+    font-weight: bold;
+  }

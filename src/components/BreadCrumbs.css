@@ -1,0 +1,22 @@
+.breadcrumbs {
+    font-size: 16px;
+    margin-bottom: 15px;
+    background-color:rgb(209, 247, 238); /* Light green background */
+    padding: 10px 15px;
+    border-radius: 5px; /* Adds rounded corners */
+}
+
+.breadcrumbs a {
+    text-decoration: none;
+    color:rgb(39, 124, 124); /* Dark green text for links */
+    transition: color 0.3s ease, text-shadow 0.3s ease; /* Smooth transitions for hover effects */
+}
+
+.breadcrumbs a:hover {
+    color:rgb(0, 235, 252); /* Light green on hover */
+    text-shadow: 0px 0px 3px #66bb6a; /* Adds a glowing effect */
+}
+
+.breadcrumbs span {
+    color: #757575; /* Neutral gray for the current breadcrumb */
+}

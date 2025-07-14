@@ -1,0 +1,72 @@
+[
+  {
+    "id": 1,
+    "name": "Front Counter 1",
+    "location": "Front",
+    "status": "Active",
+    "lastUpdate": "2025-03-09 10:30 AM",
+    "images": [
+      "/src/assets/slides/slide1.png",
+      "/src/assets/slides/slide2.png",
+      "/src/assets/slides/slide3.png",
+      "/src/assets/slides/slide4.png",
+      "/src/assets/slides/slide5.png"
+    ]
+  },
+  {
+    "id": 2,
+    "name": "Drive-Thru 1",
+    "location": "Drive-Thru",
+    "status": "Active",
+    "lastUpdate": "2025-03-09 10:28 AM",
+    "images": [
+      "/src/assets/slides/slide1.png",
+      "/src/assets/slides/slide2.png",
+      "/src/assets/slides/slide3.png",
+      "/src/assets/slides/slide4.png",
+      "/src/assets/slides/slide5.png"
+    ]
+  },
+  {
+    "id": 3,
+    "name": "Kitchen Display",
+    "location": "Kitchen",
+    "status": "Inactive",
+    "lastUpdate": "2025-03-09 09:15 AM",
+    "images": [
+      "/src/assets/slides/slide1.png",
+      "/src/assets/slides/slide2.png",
+      "/src/assets/slides/slide3.png",
+      "/src/assets/slides/slide4.png",
+      "/src/assets/slides/slide5.png"
+    ]
+  },
+  {
+    "id": 4,
+    "name": "Front Counter 2",
+    "location": "Front",
+    "status": "Active",
+    "lastUpdate": "2025-03-09 10:29 AM",
+    "images": [
+      "/src/assets/slides/slide1.png",
+      "/src/assets/slides/slide2.png",
+      "/src/assets/slides/slide3.png",
+      "/src/assets/slides/slide4.png",
+      "/src/assets/slides/slide5.png"
+    ]
+  },
+  {
+    "id": 5,
+    "name": "Dining Area",
+    "location": "Dining",
+    "status": "Inactive",
+    "lastUpdate": "2025-03-09 08:45 AM",
+    "images": [
+      "/src/assets/slides/slide1.png",
+      "/src/assets/slides/slide2.png",
+      "/src/assets/slides/slide3.png",
+      "/src/assets/slides/slide4.png",
+      "/src/assets/slides/slide5.png"
+    ]
+  }
+]

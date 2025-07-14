@@ -1,0 +1,115 @@
+.canvas-item-wrapper {
+  position: absolute;
+}
+
+.canvas-item-content {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 15px;
+  cursor: grab;
+  user-select: none;
+ 
+  position: relative;
+}
+
+.canvas-item-content:active {
+  cursor: grabbing;
+}
+
+.canvas-item-wrapper:hover .canvas-item-content:not(.view-mode) {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.canvas-item-wrapper.view-mode .canvas-item-content {
+  border: none; /* Remove border in view mode */
+  padding: 15px; /* Maintain padding */
+  box-shadow: none; /* Remove shadow */
+  cursor: default; /* No grab cursor */
+}
+
+.button-container {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  display: flex;
+  gap: 5px;
+}
+
+.remove-button {
+  background-color: #ff4d4d;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.3s ease;
+}
+
+.remove-button:hover {
+  background-color: #ff1a1a;
+}
+
+.edit-button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.3s ease;
+}
+
+.edit-button:hover {
+  background-color: #0056b3;
+}
+
+.resize-handle {
+  width: 10px;
+  height: 10px;
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  cursor: nwse-resize;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 3px;
+}
+.rotate-handle {
+  width: 10px;
+  height: 10px;
+  position: absolute;
+  top: -15px;
+  left: 50%;
+  transform: translateX(-50%);
+  cursor: grab;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 50%;
+}
+.duplicate-button {
+  position: absolute;
+  top: 10px;
+  right: 20%; /* Adjust positioning relative to remove/edit buttons */
+  width: 20px;
+  height: 20px;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.duplicate-button:hover {
+  background: #f0f0f0;
+}
