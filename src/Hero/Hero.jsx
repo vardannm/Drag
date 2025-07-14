@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { FaUser, FaSignOutAlt } from "react-icons/fa";
-import { NavLink, Outlet, useLocation } from "react-router-dom"; // Add useLocation
+import { NavLink, Outlet, useLocation } from "react-router-dom"; 
 import Breadcrumbs from "../components/BreadCrumbs";
 import "./Hero.css";
 
@@ -8,7 +8,7 @@ function Hero() {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
   const userInfoRef = useRef(null);
-  const location = useLocation(); // Get the current path
+  const location = useLocation(); 
   const isNewTemplate = location.pathname === "/templates/new" || location.pathname.startsWith("/templates/") && location.pathname !== "/templates";;
   console.log("Hero.jsx - Path:", location.pathname);
   console.log("Hero.jsx - isNewTemplate:", isNewTemplate);
@@ -38,7 +38,7 @@ function Hero() {
 
   return (
     <div className="hero-container">
-      {!isNewTemplate && ( // Only show sidebar if NOT /templates/new
+      {!isNewTemplate && ( 
         <div className="sidebar">
           <div className="user-info" onClick={toggleDropdown} ref={userInfoRef}>
             <span className="user-name">John Doe</span>
@@ -67,7 +67,7 @@ function Hero() {
       )}
 
       <div className="content">
-        <Breadcrumbs /> {/* Breadcrumbs at the top of content */}
+        <Breadcrumbs /> 
         <Outlet />
       </div>
     </div>

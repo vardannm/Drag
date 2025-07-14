@@ -30,19 +30,19 @@ const AlignmentLine = ({ type, position, x, y, rotation }) => {
       Object.assign(style, {
         left: `${x}px`,
         top: `${y}px`,
-        width: "200%", // Long enough to span canvas
+        width: "200%", 
         height: "1px",
         transform: `rotate(${rotation}deg) translate(-50%, -50%)`,
         transformOrigin: "center",
       });
       break;
-    case "rotation": // Optional: could visualize rotation differently
+    case "rotation":
       Object.assign(style, {
         top: `${position}px`,
         left: 0,
         width: "100%",
         height: "1px",
-        backgroundColor: "green", // Different color for rotation
+        backgroundColor: "green", 
       });
       break;
     default:

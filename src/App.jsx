@@ -5,7 +5,7 @@ import DeviceContent from "./pages/Device";
 import DeviceDetail from "./pages/DeviceDetail";
 import SlidesContent from "./pages/SlidesContent";
 import TemplatesContent from "./pages/TemplatesContent";
-import Template from "./Template"; // Import Template.jsx
+import Template from "./Template"; 
 
 function App() {
   return (

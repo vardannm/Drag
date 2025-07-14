@@ -7,7 +7,7 @@ function DeviceContent() {
   const navigate = useNavigate();
 
   const handleDeviceClick = (screenId) => {
-    navigate(`/device/${screenId}`); // Navigate to device details page
+    navigate(`/device/${screenId}`);
   };
 
   return (
@@ -21,7 +21,7 @@ function DeviceContent() {
           <div 
             key={screen.id} 
             className="screen-card" 
-            onClick={() => handleDeviceClick(screen.id)} // Navigate on click
+            onClick={() => handleDeviceClick(screen.id)} 
           >
             <h3>{screen.name}</h3>
             <p>Location: {screen.location}</p>

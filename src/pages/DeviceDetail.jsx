@@ -1,9 +1,9 @@
-// DeviceDetail.jsx
+
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Slider from 'react-slick';
 import DeviceJson from '../data/DeviceData.json';
-import { getSlidesData } from '../pages/SlidesContent'; // Import slides data
+import { getSlidesData } from '../pages/SlidesContent'; 
 import './DeviceDetail.css';
 
 function DeviceDetail() {
@@ -11,8 +11,8 @@ function DeviceDetail() {
   const navigate = useNavigate();
   
   const device = DeviceJson.find(device => device.id === parseInt(id));
-  const availableSlides = getSlidesData(); // Get available slides
-  const [selectedSlideId, setSelectedSlideId] = useState(device.selectedSlideId || availableSlides[0].id); // Default to first slide or device's current
+  const availableSlides = getSlidesData();
+  const [selectedSlideId, setSelectedSlideId] = useState(device.selectedSlideId || availableSlides[0].id); 
 
   if (!device) {
     return <p>Device not found</p>;
@@ -20,7 +20,7 @@ function DeviceDetail() {
 
   const selectedSlide = availableSlides.find(slide => slide.id === selectedSlideId);
 
-  // Slider settings
+
   const settings = {
     dots: true,
     infinite: true,
@@ -35,7 +35,6 @@ function DeviceDetail() {
 
   const handleSlideChange = (e) => {
     setSelectedSlideId(parseInt(e.target.value));
-    // Here you could also save this to some persistent state or backend
   };
 
   return (

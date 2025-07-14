@@ -1,9 +1,6 @@
-// TemplatesContent.jsx
-import React from "react";
 import { Link } from "react-router-dom";
 import "./TemplatesContent.css";
 
-// Static list of exported JSON files (now in public/templates/)
 const templateFiles = [
   { id: 1, name: "Coffee Menu", path: "/templates/menu-design-1741177484759.json" },
   { id: 2, name: "Fast Food Combo", path: "/templates/fast-food-combo.json" },
@@ -23,7 +20,7 @@ function TemplatesContent() {
               to={`/templates/${template.id}`}
               target="_blank"
               rel="noopener noreferrer"
-              state={{ templatePath: template.path }} // Pass the file path via state
+              state={{ templatePath: template.path }}
             >
               {template.name}
             </Link>

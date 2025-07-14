@@ -165,7 +165,7 @@ const CanvasItem = ({
   const handleRemoveClick = (e) => {
     e.stopPropagation();
     e.preventDefault();
-    console.log("Removing element:", element.id); // Debug log
+    console.log("Removing element:", element.id); 
     removeElement(element.id);
   };
 

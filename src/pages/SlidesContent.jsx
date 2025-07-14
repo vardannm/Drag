@@ -1,8 +1,6 @@
-// SlidesContent.jsx
 import React, { useState } from 'react';
 import './SlidesContent.css';
 
-// Available images (you can add more as needed)
 const availableImages = [
   "/src/assets/slides/slide1.png",
       "/src/assets/slides/slide2.png",
@@ -11,7 +9,6 @@ const availableImages = [
       "/src/assets/slides/slide5.png"
 ];
 
-// Initial slide data (can be empty or pre-populated)
 const initialSlides = [
   {
     id: 1,
@@ -66,8 +63,6 @@ function SlidesContent() {
   return (
     <div className="slides-content">
       <h1>Manage Slides</h1>
-      
-      {/* Create New Slide */}
       <div className="slide-creator">
         <h2>Create New Slide</h2>
         <input
@@ -93,8 +88,6 @@ function SlidesContent() {
           Add Slide
         </button>
       </div>
-
-      {/* Existing Slides */}
       <div className="slides-list">
         <h2>Available Slides</h2>
         {slides.map(slide => (
@@ -112,7 +105,6 @@ function SlidesContent() {
   );
 }
 
-// Export the slides data (for simplicity, we'll export the initial data plus any new ones added)
-export const getSlidesData = () => initialSlides; // This could be updated to return dynamic state if persisted
+export const getSlidesData = () => initialSlides;
 
 export default SlidesContent;

@@ -15,7 +15,6 @@ import {
 import ShapePanel from "./ShapePanel";
 import { ChromePicker } from "react-color";
 import "./CanvasEditor.css";
-// Helper hook to load images
 const useImage = (url) => {
   const [image, setImage] = React.useState(null);
 
@@ -58,19 +57,16 @@ export default function CanvasEditor() {
     setTimeout(() => setShapes(newShapes), 0);
   };
   const GRID_SIZE = 20;
-  // For demo, default image URL when you drop 'image'
   const defaultImageUrl = "https://konvajs.org/assets/lion.png";
 
   function handleDragStart(e, type) {
     e.dataTransfer.setData("shapeType", type);
   }
   const adjustCanvasSize = (newWidth, newHeight) => {
-    const minWidth = 300; // Minimum canvas width
-    const minHeight = 200; // Minimum canvas height
+    const minWidth = 300;
+    const minHeight = 200; 
     const boundedWidth = Math.max(minWidth, newWidth);
     const boundedHeight = Math.max(minHeight, newHeight);
-
-    // Adjust shapes to stay within new bounds
     const updatedShapes = shapes.map((shape) => {
       const shapeWidth = shape.width || shape.radius * 2 || 100;
       const shapeHeight = shape.height || shape.radius * 2 || 100;
@@ -113,21 +109,17 @@ export default function CanvasEditor() {
       fontStyle: "",
       align: "left",
   fontWeight: "normal",
-      textDecoration: "", // 'underline' etc.
+      textDecoration: "", 
       points: [0, 0, 100, 0],
       imageUrl: defaultImageUrl,
       imageObject: null,
-      width: 200, // Add this to give the text a bounding box
+      width: 200,
   height: 50,
     };
 
     pushToHistory([...shapes, baseShape]);
     setSelectedId(id);
   }
-
-  // Attach transformer to selected shape
-
-  // Update shape props
   const updateShape = (id, newAttrs) => {
     setShapes(
       shapes.map((shape) =>
@@ -148,7 +140,6 @@ export default function CanvasEditor() {
       trRef.current.getLayer().batchDraw();
     }
   }, [selectedId, shapes]);
-  // Load image objects for image shapes
   useEffect(() => {
     shapes.forEach((shape) => {
       if (shape.type === "image" && !shape.imageObject && shape.imageUrl) {
@@ -215,7 +206,6 @@ export default function CanvasEditor() {
             fontSize: Math.max(5, shape.fontSize * scaleX),
           });
         } else if (shape.type === "line") {
-          // For line, update scale by adjusting points length accordingly
           const newPoints = shape.points.map((p, i) =>
             i % 2 === 0 ? p * scaleX : p * scaleY
           );
@@ -264,11 +254,10 @@ export default function CanvasEditor() {
             fontWeight={shape.fontWeight || "normal"}
             align={shape.align || "left"}
             textDecoration={shape.textDecoration || ""}
-            width={shape.width || 200} // Ensure width is set
+            width={shape.width || 200}
       height={shape.height || shape.fontSize * 1.2} 
             listening={true}
             onDblClick={(e) => {
-              // Inline text edit logic (same as before)
               const absPos = e.target.getAbsolutePosition();
               const stageBox = stageRef.current
                 .container()
@@ -408,7 +397,6 @@ export default function CanvasEditor() {
   };
   const handleSelectShape = (id, e) => {
     if (e.shiftKey || e.ctrlKey || e.metaKey) {
-      // Multi-select toggle
       if (selectedIds.includes(id)) {
         setSelectedIds(selectedIds.filter((i) => i !== id));
       } else {
@@ -497,7 +485,6 @@ export default function CanvasEditor() {
   const renderGridLines = () => {
     const lines = [];
 
-    // Vertical lines
     for (let i = GRID_SIZE; i < canvasWidth; i += GRID_SIZE) {
       lines.push(
         <Line
@@ -510,7 +497,6 @@ export default function CanvasEditor() {
       );
     }
 
-    // Horizontal lines
     for (let j = GRID_SIZE; j < canvasHeight; j += GRID_SIZE) {
       lines.push(
         <Line
@@ -596,7 +582,7 @@ export default function CanvasEditor() {
       const duplicated = {
         ...original,
         id: newId,
-        x: original.x + 20, // Offset slightly from original
+        x: original.x + 20, 
         y: original.y + 20,
       };
 
@@ -615,12 +601,9 @@ export default function CanvasEditor() {
   };
   useEffect(() => {
     const handleKeyDown = (e) => {
-      // Delete key
       if (e.key === "Delete" || e.key === "Backspace") {
         deleteSelected();
       }
-
-      // Ctrl+D for duplicate (optional)
       if ((e.ctrlKey || e.metaKey) && e.key === "d") {
         e.preventDefault();
         duplicateSelected();
@@ -633,7 +616,6 @@ export default function CanvasEditor() {
     };
   }, [shapes, selectedIds]);
   useEffect(() => {
-  // Preload common fonts
   const fonts = ["Arial", "Times New Roman", "Courier New"];
   fonts.forEach(font => {
     const div = document.createElement("div");
@@ -652,7 +634,6 @@ export default function CanvasEditor() {
         onUploadImage={handleUploadImage}
       />
 
-      {/* Canvas Area */}
       <div
         className="canvas-area"
         onDrop={handleDrop}
@@ -686,9 +667,7 @@ export default function CanvasEditor() {
         </Stage>
       </div>
 
-      {/* Right Panel */}
       <div className="right-panel">
-        {/* Top Utility Controls */}
         <div className="button-group">
           <button onClick={undo} disabled={historyStep <= 0}>
             Undo
@@ -717,7 +696,6 @@ export default function CanvasEditor() {
           </button>
         </div>
 
-        {/* Canvas Size */}
         <h3>Canvas Size</h3>
         <div className="button-group">
           <button
@@ -762,7 +740,6 @@ export default function CanvasEditor() {
           />
         </div>
 
-        {/* Shape Properties */}
         {selectedShape ? (
           <>
             <h3>Properties</h3>
@@ -997,7 +974,6 @@ export default function CanvasEditor() {
           <p>Select a shape to edit properties</p>
         )}
 
-        {/* Shape List */}
         <h3>Shapes List</h3>
         <ul className="shape-list">
           {shapes.map((shape) => (
@@ -1014,8 +990,6 @@ export default function CanvasEditor() {
             </li>
           ))}
         </ul>
-
-        {/* Canvas Controls */}
         <h3>Canvas</h3>
         <label>Background Color</label>
         <ChromePicker
