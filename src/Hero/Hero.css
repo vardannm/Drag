@@ -8,11 +8,11 @@
     background-color: #f4f4f4;
     display: flex;
     flex-direction: column;
-    justify-content: center; /* Center buttons vertically */
+    justify-content: center; 
     align-items: center;
     width: 600px;
     gap: 30px;
-    position: relative; /* For dropdown positioning */
+    position: relative; 
   }
   
   .sidebar-button {
@@ -82,10 +82,10 @@
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     font-family: Arial, sans-serif;
     cursor: pointer;
-    position: absolute; /* Position user-info absolutely */
-    top: 30px; /* Adjust top position */
-    left: 50%; /* Center horizontally */
-    transform: translateX(-50%); /* Center horizontally */
+    position: absolute; 
+    top: 30px; 
+    left: 50%;
+    transform: translateX(-50%);
   }
   
   .user-icon {
@@ -107,11 +107,11 @@
     color: #333;
   }
   
-  /* Dropdown Menu Styles */
+
   .dropdown-menu {
     position: absolute;
-    top: 100px; /* Position below user-info */
-    left: 27%; /* Center horizontally */
+    top: 100px;
+    left: 27%;
     
     background: #fff;
     border-radius: 10px;
@@ -119,7 +119,7 @@
     width: 200px;
     overflow: hidden;
     animation: slideDown 0.3s ease-out;
-    z-index: 10; /* Ensure it appears above other elements */
+    z-index: 10; 
   }
   
   .dropdown-item {
@@ -141,29 +141,27 @@
     font-size: 16px;
     font-weight: bold;
     color: #ffffff;
-    background-color: #007bff; /* Vibrant blue */
+    background-color: #007bff;
     border: none;
-    border-radius: 8px; /* Smooth, rounded corners */
+    border-radius: 8px; 
     text-decoration: none;
     cursor: pointer;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); 
     transition: all 0.3s ease;
   }
   .back-button:hover{
-    background-color: #0056b3; /* Slightly darker blue on hover */
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15); /* Enhanced shadow on hover */
+    background-color: #0056b3; 
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
     transform: translateY(-2px);
   }
   .back-button:active{
-    background-color: #004085; /* Darkest blue for active state */
-    transform: translateY(0); /* Reset lift when clicked */
+    background-color: #004085; 
+    transform: translateY(0); 
     box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
   }
   .dropdown-icon {
     margin-right: 10px;
   }
-  
-  /* Animation for dropdown */
   @keyframes slideDown {
     from {
       opacity: 0;
