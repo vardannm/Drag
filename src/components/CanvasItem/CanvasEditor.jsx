@@ -15,6 +15,7 @@ import {
 import ShapePanel from "./ShapePanel";
 import { ChromePicker } from "react-color";
 import "./CanvasEditor.css";
+
 const useImage = (url) => {
   const [image, setImage] = React.useState(null);
 
@@ -42,40 +43,60 @@ export default function CanvasEditor() {
   const [history, setHistory] = useState([]);
   const [historyStep, setHistoryStep] = useState(-1);
   const [selectedIds, setSelectedIds] = useState([]);
-  const [showGrid, setShowGrid] = useState(true);
+  const [showGrid, setShowGrid] = useState(false);
   const [canvasBg, setCanvasBg] = useState("#ffffff");
   const [canvasWidth, setCanvasWidth] = useState(900);
   const [canvasHeight, setCanvasHeight] = useState(600);
+  const [expandedSections, setExpandedSections] = useState({
+    canvas: true,
+    properties: true,
+    align: true,
+    shapes: true,
+  });
+  const [shapeSearch, setShapeSearch] = useState("");
   const stageRef = useRef();
   const trRef = useRef();
+  const fileInputRef = useRef(null);
+  const mainLayerRef = useRef(null);
+  const gridLayerRef = useRef(null);
+const backgroundLayerRef = useRef(null);
+
   const pushToHistory = (newShapes) => {
     const updatedHistory = history.slice(0, historyStep + 1);
     updatedHistory.push(newShapes);
     setHistory(updatedHistory);
-    setHistory(updatedHistory);
     setHistoryStep(updatedHistory.length - 1);
     setTimeout(() => setShapes(newShapes), 0);
   };
+
   const GRID_SIZE = 20;
   const defaultImageUrl = "https://konvajs.org/assets/lion.png";
+
+  const toggleSection = (section) => {
+    setExpandedSections((prev) => ({
+      ...prev,
+      [section]: !prev[section],
+    }));
+  };
 
   function handleDragStart(e, type) {
     e.dataTransfer.setData("shapeType", type);
   }
+
   const adjustCanvasSize = (newWidth, newHeight) => {
     const minWidth = 300;
-    const minHeight = 200; 
+    const minHeight = 200;
     const boundedWidth = Math.max(minWidth, newWidth);
     const boundedHeight = Math.max(minHeight, newHeight);
     const updatedShapes = shapes.map((shape) => {
       const shapeWidth = shape.width || shape.radius * 2 || 100;
       const shapeHeight = shape.height || shape.radius * 2 || 100;
-      const newX = Math.min(shape.x, boundedWidth - shapeWidth);
-      const newY = Math.min(shape.y, boundedHeight - shapeHeight);
+      const newX = Math.min(Math.max(0, shape.x), boundedWidth - shapeWidth);
+      const newY = Math.min(Math.max(0, shape.y), boundedHeight - shapeHeight);
       return {
         ...shape,
-        x: Math.max(0, newX),
-        y: Math.max(0, newY),
+        x: newX,
+        y: newY,
       };
     });
 
@@ -83,6 +104,7 @@ export default function CanvasEditor() {
     setCanvasHeight(boundedHeight);
     pushToHistory(updatedShapes);
   };
+
   function handleDrop(e) {
     e.preventDefault();
     const stage = stageRef.current.getStage();
@@ -94,8 +116,8 @@ export default function CanvasEditor() {
     const baseShape = {
       id,
       type,
-      x: pointerPosition.x,
-      y: pointerPosition.y,
+      x: Math.min(Math.max(0, pointerPosition.x), canvasWidth - 100),
+      y: Math.min(Math.max(0, pointerPosition.y), canvasHeight - 100),
       fill: "lightblue",
       stroke: "black",
       strokeWidth: 2,
@@ -108,18 +130,19 @@ export default function CanvasEditor() {
       fontFamily: "Arial",
       fontStyle: "",
       align: "left",
-  fontWeight: "normal",
-      textDecoration: "", 
+      fontWeight: "normal",
+      textDecoration: "",
       points: [0, 0, 100, 0],
       imageUrl: defaultImageUrl,
       imageObject: null,
       width: 200,
-  height: 50,
+      height: 50,
     };
 
     pushToHistory([...shapes, baseShape]);
     setSelectedId(id);
   }
+
   const updateShape = (id, newAttrs) => {
     setShapes(
       shapes.map((shape) =>
@@ -127,6 +150,7 @@ export default function CanvasEditor() {
       )
     );
   };
+
   useEffect(() => {
     if (selectedId) {
       const stage = stageRef.current.getStage();
@@ -140,6 +164,7 @@ export default function CanvasEditor() {
       trRef.current.getLayer().batchDraw();
     }
   }, [selectedId, shapes]);
+
   useEffect(() => {
     shapes.forEach((shape) => {
       if (shape.type === "image" && !shape.imageObject && shape.imageUrl) {
@@ -167,11 +192,15 @@ export default function CanvasEditor() {
       onClick: (e) => handleSelectShape(shape.id, e.evt),
       onTap: (e) => handleSelectShape(shape.id, e.evt),
       onDragEnd: (e) => {
-        const snappedX = Math.round(e.target.x() / GRID_SIZE) * GRID_SIZE;
-        const snappedY = Math.round(e.target.y() / GRID_SIZE) * GRID_SIZE;
-        updateShape(shape.id, { x: snappedX, y: snappedY });
+        const node = e.target;
+        const shapeWidth = shape.width || shape.radius * 2 || 100;
+        const shapeHeight = shape.height || shape.radius * 2 || 100;
+        const snappedX = Math.round(node.x() / GRID_SIZE) * GRID_SIZE;
+        const snappedY = Math.round(node.y() / GRID_SIZE) * GRID_SIZE;
+        const clampedX = Math.min(Math.max(0, snappedX), canvasWidth - shapeWidth);
+        const clampedY = Math.min(Math.max(0, snappedY), canvasHeight - shapeHeight);
+        updateShape(shape.id, { x: clampedX, y: clampedY });
       },
-
       onTransformEnd: (e) => {
         const node = e.target;
         const scaleX = node.scaleX();
@@ -180,49 +209,58 @@ export default function CanvasEditor() {
         node.scaleX(1);
         node.scaleY(1);
 
-        if (shape.type === "rect" || shape.type === "triangle") {
-          updateShape(shape.id, {
-            x: Math.round(node.x() / GRID_SIZE) * GRID_SIZE,
-            y: Math.round(node.y() / GRID_SIZE) * GRID_SIZE,
+        const shapeWidth = shape.width || shape.radius * 2 || 100;
+        const shapeHeight = shape.height || shape.radius * 2 || 100;
+        const newX = Math.min(Math.max(0, node.x()), canvasWidth - shapeWidth);
+        const newY = Math.min(Math.max(0, node.y()), canvasHeight - shapeHeight);
 
+        if (shape.type === "rect" || shape.type === "triangle") {
+          const newWidth = Math.max(5, node.width() * scaleX);
+          const newHeight = Math.max(5, node.height() * scaleY);
+          updateShape(shape.id, {
+            x: Math.round(newX / GRID_SIZE) * GRID_SIZE,
+            y: Math.round(newY / GRID_SIZE) * GRID_SIZE,
             rotation: node.rotation(),
-            width: Math.max(5, node.width() * scaleX),
-            height: Math.max(5, node.height() * scaleY),
+            width: Math.min(newWidth, canvasWidth - newX),
+            height: Math.min(newHeight, canvasHeight - newY),
           });
         } else if (shape.type === "circle") {
+          const newRadius = Math.max(5, shape.radius * scaleX);
           updateShape(shape.id, {
-            x: Math.round(node.x() / GRID_SIZE) * GRID_SIZE,
-            y: Math.round(node.y() / GRID_SIZE) * GRID_SIZE,
-
+            x: Math.round(newX / GRID_SIZE) * GRID_SIZE,
+            y: Math.round(newY / GRID_SIZE) * GRID_SIZE,
             rotation: node.rotation(),
-            radius: Math.max(5, shape.radius * scaleX),
+            radius: Math.min(newRadius, Math.min(canvasWidth - newX, canvasHeight - newY) / 2),
           });
         } else if (shape.type === "text") {
+          const newFontSize = Math.max(5, shape.fontSize * scaleX);
           updateShape(shape.id, {
-            x: Math.round(node.x() / GRID_SIZE) * GRID_SIZE,
-            y: Math.round(node.y() / GRID_SIZE) * GRID_SIZE,
-
+            x: Math.round(newX / GRID_SIZE) * GRID_SIZE,
+            y: Math.round(newY / GRID_SIZE) * GRID_SIZE,
             rotation: node.rotation(),
-            fontSize: Math.max(5, shape.fontSize * scaleX),
+            fontSize: newFontSize,
+            width: Math.min(shape.width || 200, canvasWidth - newX),
+            height: Math.min(shape.height || newFontSize * 1.2, canvasHeight - newY),
           });
         } else if (shape.type === "line") {
           const newPoints = shape.points.map((p, i) =>
-            i % 2 === 0 ? p * scaleX : p * scaleY
+            i % 2 === 0 ? Math.min(Math.max(0, p * scaleX), canvasWidth - newX) : Math.min(Math.max(0, p * scaleY), canvasHeight - newY)
           );
           updateShape(shape.id, {
-            x: node.x(),
-            y: node.y(),
+            x: newX,
+            y: newY,
             rotation: node.rotation(),
             points: newPoints,
           });
         } else if (shape.type === "image") {
+          const newWidth = Math.max(5, node.width() * scaleX);
+          const newHeight = Math.max(5, node.height() * scaleY);
           updateShape(shape.id, {
-            x: Math.round(node.x() / GRID_SIZE) * GRID_SIZE,
-            y: Math.round(node.y() / GRID_SIZE) * GRID_SIZE,
-
+            x: Math.round(newX / GRID_SIZE) * GRID_SIZE,
+            y: Math.round(newY / GRID_SIZE) * GRID_SIZE,
             rotation: node.rotation(),
-            width: Math.max(5, node.width() * scaleX),
-            height: Math.max(5, node.height() * scaleY),
+            width: Math.min(newWidth, canvasWidth - newX),
+            height: Math.min(newHeight, canvasHeight - newY),
           });
         }
       },
@@ -231,7 +269,7 @@ export default function CanvasEditor() {
     switch (shape.type) {
       case "rect":
         return (
-          <Rect {...commonProps} width={shape.width} height={shape.height} />
+          <Rect {...commonProps} width={shape.width} height={shape.height} scaleX={1} scaleY={1}/>
         );
       case "circle":
         return <Circle {...commonProps} radius={shape.radius} />;
@@ -255,7 +293,7 @@ export default function CanvasEditor() {
             align={shape.align || "left"}
             textDecoration={shape.textDecoration || ""}
             width={shape.width || 200}
-      height={shape.height || shape.fontSize * 1.2} 
+            height={shape.height || shape.fontSize * 1.2}
             listening={true}
             onDblClick={(e) => {
               const absPos = e.target.getAbsolutePosition();
@@ -344,6 +382,7 @@ export default function CanvasEditor() {
   };
 
   const selectedShape = shapes.find((s) => s.id === selectedId);
+
   const handleUploadImage = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -386,15 +425,37 @@ export default function CanvasEditor() {
       setShapes(history[historyStep + 1]);
     }
   };
+
   const exportToPng = () => {
-    const uri = stageRef.current.getStage().toDataURL({ pixelRatio: 3 });
-    const link = document.createElement("a");
-    link.download = "canvas-export.png";
-    link.href = uri;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
+  const stage = stageRef.current.getStage();
+  const transformerLayer = trRef.current.getLayer();
+  const wasGridVisible = showGrid;
+
+  if (gridLayerRef.current) {
+    gridLayerRef.current.visible(false);
+  }
+  if (transformerLayer) {
+    transformerLayer.visible(false);
+  }
+  stage.batchDraw();
+
+  const uri = stage.toDataURL({ pixelRatio: 3 });
+
+  if (gridLayerRef.current) {
+    gridLayerRef.current.visible(wasGridVisible);
+  }
+  if (transformerLayer) {
+    transformerLayer.visible(true);
+  }
+  stage.batchDraw();
+
+  const link = document.createElement("a");
+  link.download = "canvas-export.png";
+  link.href = uri;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
   const handleSelectShape = (id, e) => {
     if (e.shiftKey || e.ctrlKey || e.metaKey) {
       if (selectedIds.includes(id)) {
@@ -404,8 +465,15 @@ export default function CanvasEditor() {
       }
     } else {
       setSelectedIds([id]);
+      setSelectedId(id);
     }
   };
+
+  const deselectAll = () => {
+    setSelectedIds([]);
+    setSelectedId(null);
+  };
+
   useEffect(() => {
     const stage = stageRef.current.getStage();
     const nodes = selectedIds
@@ -414,6 +482,7 @@ export default function CanvasEditor() {
     trRef.current.nodes(nodes);
     trRef.current.getLayer().batchDraw();
   }, [selectedIds, shapes]);
+
   const alignShapes = (direction) => {
     const selectedShapes = shapes.filter((s) => selectedIds.includes(s.id));
     if (selectedShapes.length < 2) return;
@@ -482,35 +551,37 @@ export default function CanvasEditor() {
 
     pushToHistory(updates);
   };
-  const renderGridLines = () => {
-    const lines = [];
 
-    for (let i = GRID_SIZE; i < canvasWidth; i += GRID_SIZE) {
-      lines.push(
-        <Line
-          key={`v-${i}`}
-          points={[i, 0, i, canvasHeight]}
-          stroke="#ddd"
-          strokeWidth={1}
-          listening={false}
-        />
-      );
-    }
+const renderGridLines = () => {
+  const lines = [];
 
-    for (let j = GRID_SIZE; j < canvasHeight; j += GRID_SIZE) {
-      lines.push(
-        <Line
-          key={`h-${j}`}
-          points={[0, j, canvasWidth, j]}
-          stroke="#ddd"
-          strokeWidth={1}
-          listening={false}
-        />
-      );
-    }
+  for (let i = GRID_SIZE; i < canvasWidth; i += GRID_SIZE) {
+    lines.push(
+      <Line
+        key={`v-${i}`}
+        points={[i, 0, i, canvasHeight]}
+        stroke="#ddd"
+        strokeWidth={1}
+        listening={false}
+      />
+    );
+  }
 
-    return lines;
-  };
+  for (let j = GRID_SIZE; j < canvasHeight; j += GRID_SIZE) {
+    lines.push(
+      <Line
+        key={`h-${j}`}
+        points={[0, j, canvasWidth, j]}
+        stroke="#ddd"
+        strokeWidth={1}
+        listening={false}
+      />
+    );
+  }
+
+  return lines;
+};
+
   const groupShapes = () => {
     if (selectedIds.length < 2) return;
 
@@ -529,6 +600,7 @@ export default function CanvasEditor() {
     pushToHistory([...remaining, groupShape]);
     setSelectedIds([groupId]);
   };
+
   const ungroupShape = () => {
     const shape = shapes.find((s) => s.id === selectedId);
     if (!shape || shape.type !== "group") return;
@@ -537,6 +609,7 @@ export default function CanvasEditor() {
     pushToHistory([...others, ...shape.children]);
     setSelectedIds(shape.children.map((c) => c.id));
   };
+
   const bringToFront = () => {
     const ids = new Set(selectedIds);
     const reordered = [
@@ -554,18 +627,64 @@ export default function CanvasEditor() {
     ];
     pushToHistory(reordered);
   };
+
   const saveCanvas = () => {
-    const json = JSON.stringify(shapes);
-    localStorage.setItem("canvas-data", json);
-    alert("Canvas saved!");
+    const canvasData = {
+      shapes,
+      canvasWidth,
+      canvasHeight,
+      canvasBg,
+    };
+    const json = JSON.stringify(canvasData);
+    const blob = new Blob([json], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.download = "canvas-data.json";
+    link.href = url;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    alert("Canvas data downloaded as JSON!");
   };
+
   const loadCanvas = () => {
-    const json = localStorage.getItem("canvas-data");
-    if (!json) return;
-    const loaded = JSON.parse(json);
-    pushToHistory(loaded);
-    setSelectedIds([]);
+    fileInputRef.current.click();
   };
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const loadedData = JSON.parse(event.target.result);
+        if (loadedData.shapes) {
+          const clampedShapes = loadedData.shapes.map((shape) => {
+            const shapeWidth = shape.width || shape.radius * 2 || 100;
+            const shapeHeight = shape.height || shape.radius * 2 || 100;
+            const newX = Math.min(Math.max(0, shape.x), loadedData.canvasWidth - shapeWidth);
+            const newY = Math.min(Math.max(0, shape.y), loadedData.canvasHeight - shapeHeight);
+            return { ...shape, x: newX, y: newY };
+          });
+          pushToHistory(clampedShapes);
+          setCanvasWidth(loadedData.canvasWidth || 900);
+          setCanvasHeight(loadedData.canvasHeight || 600);
+          setCanvasBg(loadedData.canvasBg || "#ffffff");
+          setSelectedIds([]);
+          alert("Canvas data loaded successfully!");
+        } else {
+          alert("Invalid JSON format: No shapes found.");
+        }
+      } catch (error) {
+        alert("Error loading JSON file: " + error.message);
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = null;
+  };
+
   const duplicateSelected = () => {
     if (selectedIds.length === 0) return;
 
@@ -579,11 +698,13 @@ export default function CanvasEditor() {
       const newId = `shape_${Date.now()}_${Math.random()
         .toString(36)
         .substr(2, 9)}`;
+      const shapeWidth = original.width || original.radius * 2 || 100;
+      const shapeHeight = original.height || original.radius * 2 || 100;
       const duplicated = {
         ...original,
         id: newId,
-        x: original.x + 20, 
-        y: original.y + 20,
+        x: Math.min(Math.max(0, original.x + 20), canvasWidth - shapeWidth),
+        y: Math.min(Math.max(0, original.y + 20), canvasHeight - shapeHeight),
       };
 
       duplicatedShapes.push(duplicated);
@@ -593,12 +714,14 @@ export default function CanvasEditor() {
     pushToHistory(newShapes);
     setSelectedIds(duplicatedShapes.map((s) => s.id));
   };
+
   const deleteSelected = () => {
     if (selectedIds.length === 0) return;
     const filtered = shapes.filter((s) => !selectedIds.includes(s.id));
     pushToHistory(filtered);
     setSelectedIds([]);
   };
+
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === "Delete" || e.key === "Backspace") {
@@ -608,6 +731,9 @@ export default function CanvasEditor() {
         e.preventDefault();
         duplicateSelected();
       }
+      if (e.key === "Escape") {
+        deselectAll();
+      }
     };
 
     window.addEventListener("keydown", handleKeyDown);
@@ -615,411 +741,509 @@ export default function CanvasEditor() {
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [shapes, selectedIds]);
+
   useEffect(() => {
-  const fonts = ["Arial", "Times New Roman", "Courier New"];
-  fonts.forEach(font => {
-    const div = document.createElement("div");
-    div.style.fontFamily = font;
-    div.style.position = "absolute";
-    div.style.visibility = "hidden";
-    div.innerHTML = ".";
-    document.body.appendChild(div);
-    setTimeout(() => document.body.removeChild(div), 100);
-  });
-}, []);
+    const fonts = ["Arial", "Times New Roman", "Courier New"];
+    fonts.forEach((font) => {
+      const div = document.createElement("div");
+      div.style.fontFamily = font;
+      div.style.position = "absolute";
+      div.style.visibility = "hidden";
+      div.innerHTML = ".";
+      document.body.appendChild(div);
+      setTimeout(() => document.body.removeChild(div), 100);
+    });
+  }, []);
+
   return (
     <div className="canvas-editor">
-      <ShapePanel
-        onDragStart={handleDragStart}
-        onUploadImage={handleUploadImage}
-      />
-
-      <div
-        className="canvas-area"
-        onDrop={handleDrop}
-        onDragOver={(e) => e.preventDefault()}
-      >
-        <Stage width={canvasWidth} height={canvasHeight} ref={stageRef}>
-          <Layer>
-            <Rect
-              x={0}
-              y={0}
-              width={canvasWidth}
-              height={canvasHeight}
-              fill={canvasBg}
-              listening={false}
-            />
-            {showGrid && renderGridLines()}
-            {shapes.map((shape) => renderShape(shape))}
-          </Layer>
-          <Layer>
-            <Transformer
-              ref={trRef}
-              rotateEnabled
-              enabledAnchors={[
-                "top-left",
-                "top-right",
-                "bottom-left",
-                "bottom-right",
-              ]}
-            />
-          </Layer>
-        </Stage>
-      </div>
-
-      <div className="right-panel">
-        <div className="button-group">
-          <button onClick={undo} disabled={historyStep <= 0}>
-            Undo
-          </button>
-          <button onClick={redo} disabled={historyStep >= history.length - 1}>
-            Redo
-          </button>
-          <button onClick={exportToPng}>Export PNG</button>
-          <button
-            onClick={duplicateSelected}
-            disabled={selectedIds.length === 0}
-          >
-            Duplicate
-          </button>
-          <button onClick={deleteSelected} disabled={selectedIds.length === 0}>
-            Delete Selected
-          </button>
-          <button
-            onClick={() => {
-              pushToHistory([]);
-              setSelectedId(null);
-              setSelectedIds([]);
-            }}
-          >
-            Delete All
-          </button>
-        </div>
-
-        <h3>Canvas Size</h3>
-        <div className="button-group">
-          <button
-            onClick={() => adjustCanvasSize(canvasWidth + 50, canvasHeight)}
-          >
-            + Width
-          </button>
-          <button
-            onClick={() => adjustCanvasSize(canvasWidth - 50, canvasHeight)}
-          >
-            - Width
-          </button>
-          <button
-            onClick={() => adjustCanvasSize(canvasWidth, canvasHeight + 50)}
-          >
-            + Height
-          </button>
-          <button
-            onClick={() => adjustCanvasSize(canvasWidth, canvasHeight - 50)}
-          >
-            - Height
-          </button>
-        </div>
-        <div>
-          <label>Width: {canvasWidth}px</label>
-          <input
-            type="number"
-            min="300"
-            value={canvasWidth}
-            onChange={(e) =>
-              adjustCanvasSize(Number(e.target.value), canvasHeight)
-            }
-          />
-          <label>Height: {canvasHeight}px</label>
-          <input
-            type="number"
-            min="200"
-            value={canvasHeight}
-            onChange={(e) =>
-              adjustCanvasSize(canvasWidth, Number(e.target.value))
-            }
-          />
-        </div>
-
-        {selectedShape ? (
-          <>
-            <h3>Properties</h3>
-            <label>Fill Color</label>
-            <ChromePicker
-              color={selectedShape.fill}
-              onChange={(color) => {
-                updateShape(selectedId, {
-                  fill: `rgba(${color.rgb.r}, ${color.rgb.g}, ${color.rgb.b}, ${color.rgb.a})`,
-                });
-              }}
-            />
-            <label>Stroke Color</label>
-            <ChromePicker
-              color={selectedShape.stroke}
-              onChange={(color) =>
-                updateShape(selectedId, { stroke: color.hex })
-              }
-            />
-            <label>Stroke Width</label>
-            <input
-              type="number"
-              min="0"
-              max="20"
-              value={selectedShape.strokeWidth}
-              onChange={(e) =>
-                updateShape(selectedId, { strokeWidth: Number(e.target.value) })
-              }
-            />
-            <label>Rotation</label>
-            <input
-              type="number"
-              min="0"
-              max="360"
-              value={selectedShape.rotation}
-              onChange={(e) =>
-                updateShape(selectedId, { rotation: Number(e.target.value) })
-              }
-            />
-            {selectedShape.type === "text" && (
-              <>
-                <label>Text Content</label>
-                <textarea
-                className="textContent"
-                  value={selectedShape.text}
-                  onChange={(e) =>
-                    updateShape(selectedId, { text: e.target.value })
-                  }
-                />
-
-                <div className="text-control-row">
-                  <div className="text-control-group">
-                    <label>Font Family</label>
-                    <select
-                      value={selectedShape.fontFamily || "Arial"}
-                      onChange={(e) =>
-                        updateShape(selectedId, { fontFamily: e.target.value })
-                      }
-                    >
-                      <option value="Arial">Arial</option>
-                      <option value="Verdana">Verdana</option>
-                      <option value="Helvetica">Helvetica</option>
-                      <option value="Times New Roman">Times New Roman</option>
-                      <option value="Courier New">Courier New</option>
-                      <option value="Georgia">Georgia</option>
-                      <option value="Palatino">Palatino</option>
-                      <option value="Garamond">Garamond</option>
-                      <option value="Comic Sans MS">Comic Sans MS</option>
-                      <option value="Impact">Impact</option>
-                    </select>
-                  </div>
-
-                  <div className="text-control-group">
-                    <label>Font Size</label>
-                    <input
-                      type="number"
-                      min="8"
-                      max="100"
-                      value={selectedShape.fontSize}
-                      onChange={(e) =>
-                        updateShape(selectedId, {
-                          fontSize: Number(e.target.value),
-                        })
-                      }
-                    />
-                  </div>
-                </div>
-
-                <div className="text-control-row">
-                  <div className="text-control-group">
-                    <label>Font Weight</label>
-                    <select
-                      value={selectedShape.fontWeight || "normal"}
-                      onChange={(e) =>
-                        updateShape(selectedId, { fontWeight: e.target.value })
-                      }
-                    >
-                      <option value="normal">Normal</option>
-                      <option value="bold">Bold</option>
-                      <option value="100">Thin (100)</option>
-                      <option value="200">Extra Light (200)</option>
-                      <option value="300">Light (300)</option>
-                      <option value="400">Regular (400)</option>
-                      <option value="500">Medium (500)</option>
-                      <option value="600">Semi Bold (600)</option>
-                      <option value="700">Bold (700)</option>
-                      <option value="800">Extra Bold (800)</option>
-                      <option value="900">Black (900)</option>
-                    </select>
-                  </div>
-
-                  <div className="text-control-group">
-                    <label>Text Align</label>
-                    <select
-                      value={selectedShape.align || "left"}
-                      onChange={(e) =>
-                        updateShape(selectedId, { align: e.target.value })
-                      }
-                    >
-                      <option value="left">Left</option>
-                      <option value="center">Center</option>
-                      <option value="right">Right</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="font-style-controls">
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={
-                        selectedShape.fontStyle?.includes("italic") || false
-                      }
-                      onChange={(e) => {
-                        const currentStyles =
-                          selectedShape.fontStyle?.split(" ") || [];
-                        const newStyles = e.target.checked
-                          ? [...currentStyles, "italic"]
-                          : currentStyles.filter((style) => style !== "italic");
-                        updateShape(selectedId, {
-                          fontStyle: newStyles.join(" "),
-                        });
-                      }}
-                    />
-                    Italic
-                  </label>
-
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={
-                        selectedShape.textDecoration?.includes("underline") ||
-                        false
-                      }
-                      onChange={(e) => {
-                        const currentDecorations =
-                          selectedShape.textDecoration?.split(" ") || [];
-                        const newDecorations = e.target.checked
-                          ? [...currentDecorations, "underline"]
-                          : currentDecorations.filter(
-                              (dec) => dec !== "underline"
-                            );
-                        updateShape(selectedId, {
-                          textDecoration: newDecorations.join(" "),
-                        });
-                      }}
-                    />
-                    Underline
-                  </label>
-
-                  <label>
-                    <input
-                      type="checkbox"
-                      checked={
-                        selectedShape.textDecoration?.includes(
-                          "line-through"
-                        ) || false
-                      }
-                      onChange={(e) => {
-                        const currentDecorations =
-                          selectedShape.textDecoration?.split(" ") || [];
-                        const newDecorations = e.target.checked
-                          ? [...currentDecorations, "line-through"]
-                          : currentDecorations.filter(
-                              (dec) => dec !== "line-through"
-                            );
-                        updateShape(selectedId, {
-                          textDecoration: newDecorations.join(" "),
-                        });
-                      }}
-                    />
-                    Strikethrough
-                  </label>
-                </div>
-              </>
-            )}
-            {selectedShape.type === "image" && (
-              <>
-                <label>Image URL</label>
-                <input
-                  type="text"
-                  value={selectedShape.imageUrl}
-                  onChange={(e) =>
-                    updateShape(selectedId, {
-                      imageUrl: e.target.value,
-                      imageObject: null,
-                    })
-                  }
-                />
-              </>
-            )}
-            {selectedShape.type === "line" && (
-              <>
-                <label>Points (comma separated)</label>
-                <input
-                  type="text"
-                  value={selectedShape.points.join(",")}
-                  onChange={(e) => {
-                    const pts = e.target.value
-                      .split(",")
-                      .map(Number)
-                      .filter((n) => !isNaN(n));
-                    if (pts.length % 2 === 0) {
-                      updateShape(selectedId, { points: pts });
-                    }
-                  }}
-                />
-              </>
-            )}
-          </>
-        ) : (
-          <p>Select a shape to edit properties</p>
-        )}
-
-        <h3>Shapes List</h3>
-        <ul className="shape-list">
-          {shapes.map((shape) => (
-            <li
-              key={shape.id}
-              onClick={() => {
-                setSelectedId(shape.id);
-                setSelectedIds([shape.id]);
-              }}
-              className={selectedIds.includes(shape.id) ? "selected" : ""}
-            >
-              [{shape.type}]{" "}
-              {shape.type === "text" ? `"${shape.text}"` : shape.id}
-            </li>
-          ))}
-        </ul>
-        <h3>Canvas</h3>
-        <label>Background Color</label>
-        <ChromePicker
-          color={canvasBg}
-          onChange={(color) => setCanvasBg(color.hex)}
+      <div className="toolbar">
+        <button onClick={undo} disabled={historyStep <= 0} title="Undo">
+          <i className="fas fa-undo">Undor</i>
+        </button>
+        <button onClick={redo} disabled={historyStep >= history.length - 1} title="Redo">
+          <i className="fas fa-redo">Redo</i>
+        </button>
+        <button onClick={exportToPng} title="Export as PNG">
+          <i className="fas fa-image"></i> Export
+        </button>
+        <button onClick={saveCanvas} title="Save Canvas">
+          <i className="fas fa-save"></i> Save
+        </button>
+        <button onClick={loadCanvas} title="Load Canvas">
+          <i className="fas fa-upload"></i> Load
+        </button>
+        <button onClick={deselectAll} disabled={selectedIds.length === 0} title="Deselect All">
+          <i className="fas fa-times"></i> Deselect
+        </button>
+        <input
+          type="file"
+          ref={fileInputRef}
+          style={{ display: "none" }}
+          accept=".json"
+          onChange={handleFileUpload}
         />
-        <h3>Align</h3>
-        <div className="button-group">
-          <button onClick={() => alignShapes("left")}>Left</button>
-          <button onClick={() => alignShapes("right")}>Right</button>
-          <button onClick={() => alignShapes("top")}>Top</button>
-          <button onClick={() => alignShapes("bottom")}>Bottom</button>
-          <button onClick={() => alignShapes("centerX")}>Center X</button>
-          <button onClick={() => alignShapes("centerY")}>Center Y</button>
+      </div>
+      <div className="main-content">
+        <ShapePanel
+          onDragStart={handleDragStart}
+          onUploadImage={handleUploadImage}
+        />
+        <div
+          className="canvas-area"
+          onDrop={handleDrop}
+          onDragOver={(e) => e.preventDefault()}
+          onClick={(e) => {
+            const stage = stageRef.current.getStage();
+            const target = stage.getIntersection(stage.getPointerPosition());
+            if (!target || target === stage) {
+              deselectAll();
+            }
+          }}
+        >
+          <Stage width={canvasWidth} height={canvasHeight} ref={stageRef}>
+        <Layer ref={backgroundLayerRef}>
+          <Rect
+            x={0}
+            y={0}
+            width={canvasWidth}
+            height={canvasHeight}
+            fill={canvasBg}
+            listening={false}
+          />
+        </Layer>
+        <Layer ref={gridLayerRef} visible={showGrid}>
+          {renderGridLines()}
+        </Layer>
+        <Layer ref={mainLayerRef}>
+          {shapes.map((shape) => renderShape(shape))}
+        </Layer>
+        <Layer>
+          <Transformer
+  ref={trRef}
+  rotateEnabled
+  enabledAnchors={["top-left", "top-right", "bottom-left", "bottom-right"]}
+  keepRatio={false}
+/>
+        </Layer>
+      </Stage>
         </div>
-        <label className="checkbox-label">
-          <input
-            type="checkbox"
-            checked={showGrid}
-            onChange={() => setShowGrid(!showGrid)}
-          />{" "}
-          Show Grid
-        </label>
-        <div className="button-group">
-          <button onClick={groupShapes}>Group</button>
-          <button onClick={ungroupShape}>Ungroup</button>
-          <button onClick={bringToFront}>Bring to Front</button>
-          <button onClick={sendToBack}>Send to Back</button>
-          <button onClick={saveCanvas}>Save</button>
-          <button onClick={loadCanvas}>Load</button>
+        <div className="right-panel">
+          <div className="accordion">
+            <div className="accordion-header" onClick={() => toggleSection("canvas")}>
+              <h3>Canvas Settings</h3>
+              <i className={`fas fa-chevron-${expandedSections.canvas ? "up" : "down"}`}></i>
+            </div>
+            {expandedSections.canvas && (
+              <div className="accordion-content">
+                <label>Background Color</label>
+                <ChromePicker
+                  color={canvasBg}
+                  onChange={(color) => setCanvasBg(color.hex)}
+                />
+                <label>Width: {canvasWidth}px</label>
+                <input
+                  type="number"
+                  min="300"
+                  value={canvasWidth}
+                  onChange={(e) =>
+                    adjustCanvasSize(Number(e.target.value), canvasHeight)
+                  }
+                />
+                <label>Height: {canvasHeight}px</label>
+                <input
+                  type="number"
+                  min="200"
+                  value={canvasHeight}
+                  onChange={(e) =>
+                    adjustCanvasSize(canvasWidth, Number(e.target.value))
+                  }
+                />
+                <div className="button-grid">
+                  <button onClick={() => adjustCanvasSize(canvasWidth + 50, canvasHeight)}>
+                    <i className="fas fa-plus"></i> Width
+                  </button>
+                  <button onClick={() => adjustCanvasSize(canvasWidth - 50, canvasHeight)}>
+                    <i className="fas fa-minus"></i> Width
+                  </button>
+                  <button onClick={() => adjustCanvasSize(canvasWidth, canvasHeight + 50)}>
+                    <i className="fas fa-plus"></i> Height
+                  </button>
+                  <button onClick={() => adjustCanvasSize(canvasWidth, canvasHeight - 50)}>
+                    <i className="fas fa-minus"></i> Height
+                  </button>
+                </div>
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    esperienza={showGrid}
+                    onChange={() => setShowGrid(!showGrid)}
+                  />{" "}
+                  Show Grid
+                </label>
+              </div>
+            )}
+          </div>
+          <div className="accordion">
+            <div className="accordion-header" onClick={() => toggleSection("properties")}>
+              <h3>Properties</h3>
+              <i className={`fas fa-chevron-${expandedSections.properties ? "up" : "down"}`}></i>
+            </div>
+            {expandedSections.properties && (
+  <div className="accordion-content">
+    {selectedShape ? (
+      <>
+        <label>Fill Color</label>
+        <ChromePicker
+          color={selectedShape.fill}
+          onChange={(color) =>
+            updateShape(selectedId, {
+              fill: `rgba(${color.rgb.r}, ${color.rgb.g}, ${color.rgb.b}, ${color.rgb.a})`,
+            })
+          }
+        />
+        <label>Stroke Color</label>
+        <ChromePicker
+          color={selectedShape.stroke}
+          onChange={(color) =>
+            updateShape(selectedId, {
+              stroke: `rgba(${color.rgb.r}, ${color.rgb.g}, ${color.rgb.b}, ${color.rgb.a})`,
+            })
+          }
+        />
+        <label>Stroke Width</label>
+        <input
+          type="number"
+          min="0"
+          max="20"
+          value={selectedShape.strokeWidth}
+          onChange={(e) =>
+            updateShape(selectedId, { strokeWidth: Number(e.target.value) })
+          }
+        />
+        <label>Rotation</label>
+        <input
+          type="number"
+          min="0"
+          max="360"
+          value={selectedShape.rotation}
+          onChange={(e) =>
+            updateShape(selectedId, { rotation: Number(e.target.value) })
+          }
+        />
+        {/* Add Width and Height Inputs for Applicable Shapes */}
+        {(selectedShape.type === "rect" || selectedShape.type === "image" || selectedShape.type === "text") && (
+          <>
+            <label>Width: {selectedShape.width}px</label>
+            <input
+              type="number"
+              min="5"
+              value={selectedShape.width || 100}
+              onChange={(e) => {
+                const newWidth = Math.max(5, Number(e.target.value));
+                const clampedWidth = Math.min(newWidth, canvasWidth - selectedShape.x);
+                updateShape(selectedId, { width: clampedWidth });
+              }}
+            />
+            <label>Height: {selectedShape.height}px</label>
+            <input
+              type="number"
+              min="5"
+              value={selectedShape.height || 100}
+              onChange={(e) => {
+                const newHeight = Math.max(5, Number(e.target.value));
+                const clampedHeight = Math.min(newHeight, canvasHeight - selectedShape.y);
+                updateShape(selectedId, { height: clampedHeight });
+              }}
+            />
+          </>
+        )}
+                    {selectedShape.type === "text" && (
+                      <>
+                        <label>Text Content</label>
+                        <textarea
+                          className="textContent"
+                          value={selectedShape.text}
+                          onChange={(e) =>
+                            updateShape(selectedId, { text: e.target.value })
+                          }
+                        />
+                        <div className="text-control-row">
+                          <div className="text-control-group">
+                            <label>Font Family</label>
+                            <select
+                              value={selectedShape.fontFamily || "Arial"}
+                              onChange={(e) =>
+                                updateShape(selectedId, { fontFamily: e.target.value })
+                              }
+                            >
+                              <option value="Arial">Arial</option>
+                              <option value="Verdana">Verdana</option>
+                              <option value="Helvetica">Helvetica</option>
+                              <option value="Times New Roman">Times New Roman</option>
+                              <option value="Courier New">Courier New</option>
+                              <option value="Georgia">Georgia</option>
+                              <option value="Palatino">Palatino</option>
+                              <option value="Garamond">Garamond</option>
+                              <option value="Comic Sans MS">Comic Sans MS</option>
+                              <option value="Impact">Impact</option>
+                            </select>
+                          </div>
+                          <div className="text-control-group">
+                            <label>Font Size</label>
+                            <input
+                              type="number"
+                              min="8"
+                              max="100"
+                              value={selectedShape.fontSize}
+                              onChange={(e) =>
+                                updateShape(selectedId, {
+                                  fontSize: Number(e.target.value),
+                                })
+                              }
+                            />
+                          </div>
+                        </div>
+                        <div className="text-control-row">
+                          <div className="text-control-group">
+                            <label>Font Weight</label>
+                            <select
+                              value={selectedShape.fontWeight || "normal"}
+                              onChange={(e) =>
+                                updateShape(selectedId, { fontWeight: e.target.value })
+                              }
+                            >
+                              <option value="normal">Normal</option>
+                              <option value="bold">Bold</option>
+                              <option value="100">Thin (100)</option>
+                              <option value="200">Extra Light (200)</option>
+                              <option value="300">Light (300)</option>
+                              <option value="400">Regular (400)</option>
+                              <option value="500">Medium (500)</option>
+                              <option value="600">Semi Bold (600)</option>
+                              <option value="700">Bold (700)</option>
+                              <option value="800">Extra Bold (800)</option>
+                              <option value="900">Black (900)</option>
+                            </select>
+                          </div>
+                          <div className="text-control-group">
+                            <label>Text Align</label>
+                            <select
+                              value={selectedShape.align || "left"}
+                              onChange={(e) =>
+                                updateShape(selectedId, { align: e.target.value })
+                              }
+                            >
+                              <option value="left">Left</option>
+                              <option value="center">Center</option>
+                              <option value="right">Right</option>
+                            </select>
+                          </div>
+                        </div>
+                        <div className="font-style-controls">
+                          <label>
+                            <input
+                              type="checkbox"
+                              checked={selectedShape.fontStyle?.includes("italic") || false}
+                              onChange={(e) => {
+                                const currentStyles = selectedShape.fontStyle?.split(" ") || [];
+                                const newStyles = e.target.checked
+                                  ? [...currentStyles, "italic"]
+                                  : currentStyles.filter((style) => style !== "italic");
+                                updateShape(selectedId, {
+                                  fontStyle: newStyles.join(" "),
+                                });
+                              }}
+                            />
+                            Italic
+                          </label>
+                          <label>
+                            <input
+                              type="checkbox"
+                              checked={selectedShape.textDecoration?.includes("underline") || false}
+                              onChange={(e) => {
+                                const currentDecorations = selectedShape.textDecoration?.split(" ") || [];
+                                const newDecorations = e.target.checked
+                                  ? [...currentDecorations, "underline"]
+                                  : currentDecorations.filter((dec) => dec !== "underline");
+                                updateShape(selectedId, {
+                                  textDecoration: newDecorations.join(" "),
+                                });
+                              }}
+                            />
+                            Underline
+                          </label>
+                          <label>
+                            <input
+                              type="checkbox"
+                              checked={selectedShape.textDecoration?.includes("line-through") || false}
+                              onChange={(e) => {
+                                const currentDecorations = selectedShape.textDecoration?.split(" ") || [];
+                                const newDecorations = e.target.checked
+                                  ? [...currentDecorations, "line-through"]
+                                  : currentDecorations.filter((dec) => dec !== "line-through");
+                                updateShape(selectedId, {
+                                  textDecoration: newDecorations.join(" "),
+                                });
+                              }}
+                            />
+                            Strikethrough
+                          </label>
+                        </div>
+                      </>
+                    )}
+                    {selectedShape.type === "image" && (
+                      <>
+                        <label>Image URL</label>
+                        <input
+                          type="text"
+                          value={selectedShape.imageUrl}
+                          onChange={(e) =>
+                            updateShape(selectedId, {
+                              imageUrl: e.target.value,
+                              imageObject: null,
+                            })
+                          }
+                        />
+                      </>
+                    )}
+                    {selectedShape.type === "line" && (
+                      <>
+                        <label>Points (comma separated)</label>
+                        <input
+                          type="text"
+                          value={selectedShape.points.join(",")}
+                          onChange={(e) => {
+                            const pts = e.target.value
+                              .split(",")
+                              .map(Number)
+                              .filter((n) => !isNaN(n));
+                            if (pts.length % 2 === 0) {
+                              updateShape(selectedId, { points: pts });
+                            }
+                          }}
+                        />
+                      </>
+                    )}
+                  </>
+                ) : (
+                  <p>Select a shape to edit properties</p>
+                )}
+              </div>
+            )}
+          </div>
+          <div className="accordion">
+            <div className="accordion-header" onClick={() => toggleSection("align")}>
+              <h3>Align Shapes</h3>
+              <i className={`fas fa-chevron-${expandedSections.align ? "up" : "down"}`}></i>
+            </div>
+            {expandedSections.align && (
+              <div className="accordion-content">
+                <div className="button-grid">
+                  <button onClick={() => alignShapes("left")} title="Align Left">
+                    <i className="fas fa-align-left"></i> Left
+                  </button>
+                  <button onClick={() => alignShapes("right")} title="Align Right">
+                    <i className="fas fa-align-right"></i> Right
+                  </button>
+                  <button onClick={() => alignShapes("top")} title="Align Top">
+                    <i className="fas fa-align-up"></i> Top
+                  </button>
+                  <button onClick={() => alignShapes("bottom")} title="Align Bottom">
+                    <i className="fas fa-align-down"></i> Bottom
+                  </button>
+                  <button onClick={() => alignShapes("centerX")} title="Center Horizontally">
+                    <i className="fas fa-align-center"></i> Center X
+                  </button>
+                  <button onClick={() => alignShapes("centerY")} title="Center Vertically">
+                    <i className="fas fa-align-center"></i> Center Y
+                  </button>
+                </div>
+                <div className="button-grid">
+  <button onClick={() => updateShape(selectedId, { width: Math.min(selectedShape.width + 10, canvasWidth - selectedShape.x) })}>
+    <i className="fas fa-plus"></i>+ Width
+  </button>
+  <button onClick={() => updateShape(selectedId, { width: Math.max(5, selectedShape.width - 10) })}>
+    <i className="fas fa-minus"></i>- Width
+  </button>
+  <button onClick={() => updateShape(selectedId, { height: Math.min(selectedShape.height + 10, canvasHeight - selectedShape.y) })}>
+    <i className="fas fa-plus"></i>+ Height
+  </button>
+  <button onClick={() => updateShape(selectedId, { height: Math.max(5, selectedShape.height - 10) })}>
+    <i className="fas fa-minus"></i>- Height
+  </button>
+</div>
+                <div className="button-grid">
+                  <button onClick={groupShapes} disabled={selectedIds.length < 2} title="Group Shapes">
+                    <i className="fas fa-object-group"></i> Group
+                  </button>
+                  <button onClick={ungroupShape} disabled={!selectedShape || selectedShape.type !== "group"} title="Ungroup Shapes">
+                    <i className="fas fa-object-ungroup"></i> Ungroup
+                  </button>
+                  <button onClick={bringToFront} disabled={selectedIds.length === 0} title="Bring to Front">
+                    <i className="fas fa-layer-group"></i> Front
+                  </button>
+                  <button onClick={sendToBack} disabled={selectedIds.length === 0} title="Send to Back">
+                    <i className="fas fa-layer-group"></i> Back
+                  </button>
+                  <button
+                    onClick={() => {
+                      pushToHistory([]);
+                      setSelectedId(null);
+                      setSelectedIds([]);
+                    }}
+                    title="Delete All Shapes"
+                  >
+                    <i className="fas fa-trash"></i> Delete All
+                  </button>
+                  <button
+                    onClick={duplicateSelected}
+                    disabled={selectedIds.length === 0}
+                    title="Duplicate Selected"
+                  >
+                    <i className="fas fa-copy"></i> Duplicate
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+          <div className="accordion">
+            <div className="accordion-header" onClick={() => toggleSection("shapes")}>
+              <h3>Shapes List</h3>
+              <i className={`fas fa-chevron-${expandedSections.shapes ? "up" : "down"}`}></i>
+            </div>
+            {expandedSections.shapes && (
+              <div className="accordion-content">
+                <input
+                  type="text"
+                  placeholder="Search shapes..."
+                  value={shapeSearch}
+                  onChange={(e) => setShapeSearch(e.target.value)}
+                />
+                <ul className="shape-list">
+                  {shapes
+                    .filter((shape) =>
+                      shape.type === "text"
+                        ? shape.text.toLowerCase().includes(shapeSearch.toLowerCase())
+                        : shape.id.toLowerCase().includes(shapeSearch.toLowerCase())
+                    )
+                    .map((shape) => (
+                      <li
+                        key={shape.id}
+                        onClick={() => {
+                          setSelectedId(shape.id);
+                          setSelectedIds([shape.id]);
+                        }}
+                        className={selectedIds.includes(shape.id) ? "selected" : ""}
+                      >
+                        [{shape.type}]{" "}
+                        {shape.type === "text" ? `"${shape.text}"` : shape.id}
+                      </li>
+                    ))}
+                </ul>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

@@ -1,9 +1,50 @@
-/* CanvasEditor.css */
 .canvas-editor {
   display: flex;
+  flex-direction: column;
   height: 100vh;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background-color: #f4f6f8;
+  overflow: hidden;
+}
+
+.toolbar {
+  display: flex;
+  gap: 10px;
+  padding: 10px;
+  background-color: #ffffff;
+  border-bottom: 1px solid #e0e0e0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  flex-wrap: wrap;
+}
+
+.toolbar button {
+  padding: 8px 12px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #fff;
+  background-color: #007bff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.1s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.toolbar button:hover:not(:disabled) {
+  background-color: #0056b3;
+  transform: translateY(-1px);
+}
+
+.toolbar button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.main-content {
+  display: flex;
+  flex-grow: 1;
   overflow: hidden;
 }
 
@@ -26,20 +67,52 @@
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 10px;
+}
+
+.accordion {
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  margin-bottom: 10px;
+}
+
+.accordion-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background-color: #f9fafb;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.accordion-header:hover {
+  background-color: #e6f0ff;
+}
+
+.accordion-header h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+}
+
+.accordion-content {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .right-panel h3 {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   font-weight: 600;
   color: #333;
-  margin: 0 0 10px;
-  border-bottom: 1px solid #e0e0e0;
-  padding-bottom: 5px;
+  margin: 0;
 }
 
 .right-panel button {
-  padding: 8px 16px;
+  padding: 8px 12px;
   font-size: 0.9rem;
   font-weight: 500;
   color: #fff;
@@ -48,6 +121,9 @@
   border-radius: 6px;
   cursor: pointer;
   transition: background-color 0.2s, transform 0.1s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .right-panel button:hover:not(:disabled) {
@@ -94,9 +170,9 @@
   margin-top: 10px;
 }
 
-.right-panel .button-group {
-  display: flex;
-  flex-wrap: wrap;
+.button-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
   gap: 8px;
 }
 
@@ -104,6 +180,8 @@
   list-style: none;
   padding: 0;
   margin: 0;
+  max-height: 200px;
+  overflow-y: auto;
 }
 
 .right-panel .shape-list li {
@@ -151,7 +229,6 @@
   overflow: hidden;
 }
 
-/* Shape Panel Styles */
 .shape-panel {
   width: 200px;
   padding: 20px;
@@ -225,44 +302,6 @@
   display: none;
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .canvas-editor {
-    flex-direction: column;
-  }
-
-  .canvas-area {
-    margin: 10px;
-    max-height: 50vh;
-  }
-
-  .right-panel {
-    width: 100%;
-    border-left: none;
-    border-top: 1px solid #e0e0e0;
-    box-shadow: none;
-    padding: 15px;
-  }
-
-  .shape-panel {
-    width: 100%;
-    border-right: none;
-    border-bottom: 1px solid #e0e0e0;
-    box-shadow: none;
-    padding: 15px;
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 10px;
-  }
-
-  .shape-panel .shape-item {
-    flex: 1 1 calc(50% - 10px);
-  }
-
-  .shape-panel .upload-button {
-    flex: 1 1 calc(50% - 10px);
-  }
-}
 .text-control-row {
   display: flex;
   gap: 15px;
@@ -301,6 +340,54 @@
   gap: 5px;
   cursor: pointer;
 }
-.textContent{
-    padding: 4px;
+
+.textContent {
+  padding: 4px;
+}
+
+@media (max-width: 768px) {
+  .canvas-editor {
+    flex-direction: column;
+  }
+
+  .toolbar {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .main-content {
+    flex-direction: column;
+  }
+
+  .canvas-area {
+    margin: 10px;
+    max-height: 50vh;
+  }
+
+  .right-panel {
+    width: 100%;
+    border-left: none;
+    border-top: 1px solid #e0e0e0;
+    box-shadow: none;
+    padding: 15px;
+  }
+
+  .shape-panel {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #e0e0e0;
+    box-shadow: none;
+    padding: 15px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .shape-panel .shape-item {
+    flex: 1 1 calc(50% - 10px);
+  }
+
+  .shape-panel .upload-button {
+    flex: 1 1 calc(50% - 10px);
+  }
 }
