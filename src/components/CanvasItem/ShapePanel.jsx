@@ -7,6 +7,7 @@ const shapes = [
   { type: 'text', label: 'Text' },
   { type: 'line', label: 'Line' },
   { type: 'image', label: 'Image' },
+  { type: 'list', label: 'List' },
 ];
 
 export default function ShapePanel({ onDragStart, onUploadImage }) {
@@ -23,9 +24,7 @@ export default function ShapePanel({ onDragStart, onUploadImage }) {
           {shape.label}
         </div>
       ))}
-
       <hr />
-
       <label
         htmlFor="upload-image"
         className="upload-button"

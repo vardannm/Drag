@@ -59,7 +59,7 @@ export default function CanvasEditor() {
   const fileInputRef = useRef(null);
   const mainLayerRef = useRef(null);
   const gridLayerRef = useRef(null);
-const backgroundLayerRef = useRef(null);
+  const backgroundLayerRef = useRef(null);
 
   const pushToHistory = (newShapes) => {
     const updatedHistory = history.slice(0, historyStep + 1);
@@ -122,22 +122,35 @@ const backgroundLayerRef = useRef(null);
       stroke: "black",
       strokeWidth: 2,
       rotation: 0,
-      width: 100,
-      height: 100,
-      radius: 50,
-      text: "Edit me",
       fontSize: 24,
       fontFamily: "Arial",
       fontStyle: "",
       align: "left",
       fontWeight: "normal",
       textDecoration: "",
-      points: [0, 0, 100, 0],
-      imageUrl: defaultImageUrl,
-      imageObject: null,
-      width: 200,
-      height: 50,
     };
+
+    if (type === "rect" || type === "triangle") {
+      baseShape.width = 100;
+      baseShape.height = 100;
+    } else if (type === "circle") {
+      baseShape.radius = 50;
+    } else if (type === "text") {
+      baseShape.text = "Edit me";
+      baseShape.width = 200;
+      baseShape.height = baseShape.fontSize * 1.2;
+    } else if (type === "list") {
+      baseShape.text = "• Item 1\n• Item 2\n• Item 3";
+      baseShape.width = 200;
+      baseShape.height = baseShape.fontSize * 3.6; // Approximate height for 3 lines
+    } else if (type === "line") {
+      baseShape.points = [0, 0, 100, 0];
+    } else if (type === "image") {
+      baseShape.imageUrl = defaultImageUrl;
+      baseShape.imageObject = null;
+      baseShape.width = 150;
+      baseShape.height = 150;
+    }
 
     pushToHistory([...shapes, baseShape]);
     setSelectedId(id);
@@ -232,15 +245,17 @@ const backgroundLayerRef = useRef(null);
             rotation: node.rotation(),
             radius: Math.min(newRadius, Math.min(canvasWidth - newX, canvasHeight - newY) / 2),
           });
-        } else if (shape.type === "text") {
+        } else if (shape.type === "text" || shape.type === "list") {
           const newFontSize = Math.max(5, shape.fontSize * scaleX);
+          const newWidth = Math.max(5, node.width() * scaleX);
+          const newHeight = Math.max(5, node.height() * scaleY);
           updateShape(shape.id, {
             x: Math.round(newX / GRID_SIZE) * GRID_SIZE,
             y: Math.round(newY / GRID_SIZE) * GRID_SIZE,
             rotation: node.rotation(),
             fontSize: newFontSize,
-            width: Math.min(shape.width || 200, canvasWidth - newX),
-            height: Math.min(shape.height || newFontSize * 1.2, canvasHeight - newY),
+            width: Math.min(newWidth, canvasWidth - newX),
+            height: Math.min(newHeight, canvasHeight - newY),
           });
         } else if (shape.type === "line") {
           const newPoints = shape.points.map((p, i) =>
@@ -269,7 +284,7 @@ const backgroundLayerRef = useRef(null);
     switch (shape.type) {
       case "rect":
         return (
-          <Rect {...commonProps} width={shape.width} height={shape.height} scaleX={1} scaleY={1}/>
+          <Rect {...commonProps} width={shape.width} height={shape.height} scaleX={1} scaleY={1} />
         );
       case "circle":
         return <Circle {...commonProps} radius={shape.radius} />;
@@ -282,6 +297,7 @@ const backgroundLayerRef = useRef(null);
           />
         );
       case "text":
+      case "list":
         return (
           <KonvaText
             {...commonProps}
@@ -375,7 +391,6 @@ const backgroundLayerRef = useRef(null);
             {shape.children.map((child) => renderShape(child))}
           </Group>
         );
-
       default:
         return null;
     }
@@ -427,35 +442,36 @@ const backgroundLayerRef = useRef(null);
   };
 
   const exportToPng = () => {
-  const stage = stageRef.current.getStage();
-  const transformerLayer = trRef.current.getLayer();
-  const wasGridVisible = showGrid;
+    const stage = stageRef.current.getStage();
+    const transformerLayer = trRef.current.getLayer();
+    const wasGridVisible = showGrid;
 
-  if (gridLayerRef.current) {
-    gridLayerRef.current.visible(false);
-  }
-  if (transformerLayer) {
-    transformerLayer.visible(false);
-  }
-  stage.batchDraw();
+    if (gridLayerRef.current) {
+      gridLayerRef.current.visible(false);
+    }
+    if (transformerLayer) {
+      transformerLayer.visible(false);
+    }
+    stage.batchDraw();
 
-  const uri = stage.toDataURL({ pixelRatio: 3 });
+    const uri = stage.toDataURL({ pixelRatio: 3 });
 
-  if (gridLayerRef.current) {
-    gridLayerRef.current.visible(wasGridVisible);
-  }
-  if (transformerLayer) {
-    transformerLayer.visible(true);
-  }
-  stage.batchDraw();
+    if (gridLayerRef.current) {
+      gridLayerRef.current.visible(wasGridVisible);
+    }
+    if (transformerLayer) {
+      transformerLayer.visible(true);
+    }
+    stage.batchDraw();
 
-  const link = document.createElement("a");
-  link.download = "canvas-export.png";
-  link.href = uri;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-};
+    const link = document.createElement("a");
+    link.download = "canvas-export.png";
+    link.href = uri;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const handleSelectShape = (id, e) => {
     if (e.shiftKey || e.ctrlKey || e.metaKey) {
       if (selectedIds.includes(id)) {
@@ -552,35 +568,35 @@ const backgroundLayerRef = useRef(null);
     pushToHistory(updates);
   };
 
-const renderGridLines = () => {
-  const lines = [];
+  const renderGridLines = () => {
+    const lines = [];
 
-  for (let i = GRID_SIZE; i < canvasWidth; i += GRID_SIZE) {
-    lines.push(
-      <Line
-        key={`v-${i}`}
-        points={[i, 0, i, canvasHeight]}
-        stroke="#ddd"
-        strokeWidth={1}
-        listening={false}
-      />
-    );
-  }
+    for (let i = GRID_SIZE; i < canvasWidth; i += GRID_SIZE) {
+      lines.push(
+        <Line
+          key={`v-${i}`}
+          points={[i, 0, i, canvasHeight]}
+          stroke="#ddd"
+          strokeWidth={1}
+          listening={false}
+        />
+      );
+    }
 
-  for (let j = GRID_SIZE; j < canvasHeight; j += GRID_SIZE) {
-    lines.push(
-      <Line
-        key={`h-${j}`}
-        points={[0, j, canvasWidth, j]}
-        stroke="#ddd"
-        strokeWidth={1}
-        listening={false}
-      />
-    );
-  }
+    for (let j = GRID_SIZE; j < canvasHeight; j += GRID_SIZE) {
+      lines.push(
+        <Line
+          key={`h-${j}`}
+          points={[0, j, canvasWidth, j]}
+          stroke="#ddd"
+          strokeWidth={1}
+          listening={false}
+        />
+      );
+    }
 
-  return lines;
-};
+    return lines;
+  };
 
   const groupShapes = () => {
     if (selectedIds.length < 2) return;
@@ -759,7 +775,7 @@ const renderGridLines = () => {
     <div className="canvas-editor">
       <div className="toolbar">
         <button onClick={undo} disabled={historyStep <= 0} title="Undo">
-          <i className="fas fa-undo">Undor</i>
+          <i className="fas fa-undo">Undo</i>
         </button>
         <button onClick={redo} disabled={historyStep >= history.length - 1} title="Redo">
           <i className="fas fa-redo">Redo</i>
@@ -802,31 +818,31 @@ const renderGridLines = () => {
           }}
         >
           <Stage width={canvasWidth} height={canvasHeight} ref={stageRef}>
-        <Layer ref={backgroundLayerRef}>
-          <Rect
-            x={0}
-            y={0}
-            width={canvasWidth}
-            height={canvasHeight}
-            fill={canvasBg}
-            listening={false}
-          />
-        </Layer>
-        <Layer ref={gridLayerRef} visible={showGrid}>
-          {renderGridLines()}
-        </Layer>
-        <Layer ref={mainLayerRef}>
-          {shapes.map((shape) => renderShape(shape))}
-        </Layer>
-        <Layer>
-          <Transformer
-  ref={trRef}
-  rotateEnabled
-  enabledAnchors={["top-left", "top-right", "bottom-left", "bottom-right"]}
-  keepRatio={false}
-/>
-        </Layer>
-      </Stage>
+            <Layer ref={backgroundLayerRef}>
+              <Rect
+                x={0}
+                y={0}
+                width={canvasWidth}
+                height={canvasHeight}
+                fill={canvasBg}
+                listening={false}
+              />
+            </Layer>
+            <Layer ref={gridLayerRef} visible={showGrid}>
+              {renderGridLines()}
+            </Layer>
+            <Layer ref={mainLayerRef}>
+              {shapes.map((shape) => renderShape(shape))}
+            </Layer>
+            <Layer>
+              <Transformer
+                ref={trRef}
+                rotateEnabled
+                enabledAnchors={["top-left", "top-right", "bottom-left", "bottom-right"]}
+                keepRatio={false}
+              />
+            </Layer>
+          </Stage>
         </div>
         <div className="right-panel">
           <div className="accordion">
@@ -876,7 +892,7 @@ const renderGridLines = () => {
                 <label className="checkbox-label">
                   <input
                     type="checkbox"
-                    esperienza={showGrid}
+                    checked={showGrid}
                     onChange={() => setShowGrid(!showGrid)}
                   />{" "}
                   Show Grid
@@ -890,75 +906,74 @@ const renderGridLines = () => {
               <i className={`fas fa-chevron-${expandedSections.properties ? "up" : "down"}`}></i>
             </div>
             {expandedSections.properties && (
-  <div className="accordion-content">
-    {selectedShape ? (
-      <>
-        <label>Fill Color</label>
-        <ChromePicker
-          color={selectedShape.fill}
-          onChange={(color) =>
-            updateShape(selectedId, {
-              fill: `rgba(${color.rgb.r}, ${color.rgb.g}, ${color.rgb.b}, ${color.rgb.a})`,
-            })
-          }
-        />
-        <label>Stroke Color</label>
-        <ChromePicker
-          color={selectedShape.stroke}
-          onChange={(color) =>
-            updateShape(selectedId, {
-              stroke: `rgba(${color.rgb.r}, ${color.rgb.g}, ${color.rgb.b}, ${color.rgb.a})`,
-            })
-          }
-        />
-        <label>Stroke Width</label>
-        <input
-          type="number"
-          min="0"
-          max="20"
-          value={selectedShape.strokeWidth}
-          onChange={(e) =>
-            updateShape(selectedId, { strokeWidth: Number(e.target.value) })
-          }
-        />
-        <label>Rotation</label>
-        <input
-          type="number"
-          min="0"
-          max="360"
-          value={selectedShape.rotation}
-          onChange={(e) =>
-            updateShape(selectedId, { rotation: Number(e.target.value) })
-          }
-        />
-        {/* Add Width and Height Inputs for Applicable Shapes */}
-        {(selectedShape.type === "rect" || selectedShape.type === "image" || selectedShape.type === "text") && (
-          <>
-            <label>Width: {selectedShape.width}px</label>
-            <input
-              type="number"
-              min="5"
-              value={selectedShape.width || 100}
-              onChange={(e) => {
-                const newWidth = Math.max(5, Number(e.target.value));
-                const clampedWidth = Math.min(newWidth, canvasWidth - selectedShape.x);
-                updateShape(selectedId, { width: clampedWidth });
-              }}
-            />
-            <label>Height: {selectedShape.height}px</label>
-            <input
-              type="number"
-              min="5"
-              value={selectedShape.height || 100}
-              onChange={(e) => {
-                const newHeight = Math.max(5, Number(e.target.value));
-                const clampedHeight = Math.min(newHeight, canvasHeight - selectedShape.y);
-                updateShape(selectedId, { height: clampedHeight });
-              }}
-            />
-          </>
-        )}
-                    {selectedShape.type === "text" && (
+              <div className="accordion-content">
+                {selectedShape ? (
+                  <>
+                    <label>Fill Color</label>
+                    <ChromePicker
+                      color={selectedShape.fill}
+                      onChange={(color) =>
+                        updateShape(selectedId, {
+                          fill: `rgba(${color.rgb.r}, ${color.rgb.g}, ${color.rgb.b}, ${color.rgb.a})`,
+                        })
+                      }
+                    />
+                    <label>Stroke Color</label>
+                    <ChromePicker
+                      color={selectedShape.stroke}
+                      onChange={(color) =>
+                        updateShape(selectedId, {
+                          stroke: `rgba(${color.rgb.r}, ${color.rgb.g}, ${color.rgb.b}, ${color.rgb.a})`,
+                        })
+                      }
+                    />
+                    <label>Stroke Width</label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="20"
+                      value={selectedShape.strokeWidth}
+                      onChange={(e) =>
+                        updateShape(selectedId, { strokeWidth: Number(e.target.value) })
+                      }
+                    />
+                    <label>Rotation</label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="360"
+                      value={selectedShape.rotation}
+                      onChange={(e) =>
+                        updateShape(selectedId, { rotation: Number(e.target.value) })
+                      }
+                    />
+                    {(selectedShape.type === "rect" || selectedShape.type === "image" || selectedShape.type === "text" || selectedShape.type === "list") && (
+                      <>
+                        <label>Width: {selectedShape.width}px</label>
+                        <input
+                          type="number"
+                          min="5"
+                          value={selectedShape.width || 100}
+                          onChange={(e) => {
+                            const newWidth = Math.max(5, Number(e.target.value));
+                            const clampedWidth = Math.min(newWidth, canvasWidth - selectedShape.x);
+                            updateShape(selectedId, { width: clampedWidth });
+                          }}
+                        />
+                        <label>Height: {selectedShape.height}px</label>
+                        <input
+                          type="number"
+                          min="5"
+                          value={selectedShape.height || 100}
+                          onChange={(e) => {
+                            const newHeight = Math.max(5, Number(e.target.value));
+                            const clampedHeight = Math.min(newHeight, canvasHeight - selectedShape.y);
+                            updateShape(selectedId, { height: clampedHeight });
+                          }}
+                        />
+                      </>
+                    )}
+                    {(selectedShape.type === "text" || selectedShape.type === "list") && (
                       <>
                         <label>Text Content</label>
                         <textarea
@@ -1160,20 +1175,6 @@ const renderGridLines = () => {
                   </button>
                 </div>
                 <div className="button-grid">
-  <button onClick={() => updateShape(selectedId, { width: Math.min(selectedShape.width + 10, canvasWidth - selectedShape.x) })}>
-    <i className="fas fa-plus"></i>+ Width
-  </button>
-  <button onClick={() => updateShape(selectedId, { width: Math.max(5, selectedShape.width - 10) })}>
-    <i className="fas fa-minus"></i>- Width
-  </button>
-  <button onClick={() => updateShape(selectedId, { height: Math.min(selectedShape.height + 10, canvasHeight - selectedShape.y) })}>
-    <i className="fas fa-plus"></i>+ Height
-  </button>
-  <button onClick={() => updateShape(selectedId, { height: Math.max(5, selectedShape.height - 10) })}>
-    <i className="fas fa-minus"></i>- Height
-  </button>
-</div>
-                <div className="button-grid">
                   <button onClick={groupShapes} disabled={selectedIds.length < 2} title="Group Shapes">
                     <i className="fas fa-object-group"></i> Group
                   </button>
@@ -1223,7 +1224,7 @@ const renderGridLines = () => {
                 <ul className="shape-list">
                   {shapes
                     .filter((shape) =>
-                      shape.type === "text"
+                      shape.type === "text" || shape.type === "list"
                         ? shape.text.toLowerCase().includes(shapeSearch.toLowerCase())
                         : shape.id.toLowerCase().includes(shapeSearch.toLowerCase())
                     )
@@ -1237,7 +1238,7 @@ const renderGridLines = () => {
                         className={selectedIds.includes(shape.id) ? "selected" : ""}
                       >
                         [{shape.type}]{" "}
-                        {shape.type === "text" ? `"${shape.text}"` : shape.id}
+                        {(shape.type === "text" || shape.type === "list") ? `"${shape.text}"` : shape.id}
                       </li>
                     ))}
                 </ul>
