@@ -9,9 +9,12 @@ import React, { useState, useEffect } from 'react';
 
        useEffect(() => {
          fetchTemplates()
-           .then(data => setTemplates(data))
+           .then(data => {
+             console.log('Fetched templates:', data);
+             setTemplates(data);
+           })
            .catch(err => {
-             console.error(err);
+             console.error('Fetch templates error:', err);
              if (err.response?.status === 401) {
                navigate('/');
              }
@@ -20,17 +23,22 @@ import React, { useState, useEffect } from 'react';
 
        const handleCreateTemplate = () => {
          const newTemplate = {
-           id: templates.length + 1,
            name: `Template ${templates.length + 1}`,
-           path: `/templates/template-${templates.length + 1}.json`
+           path: `/templates/template-${templates.length + 1}.json`,
+           data: {
+             shapes: [],
+             canvasWidth: 900,
+             canvasHeight: 600,
+             canvasBg: '#ffffff'
+           }
          };
          createTemplate(newTemplate)
            .then(template => {
              setTemplates([...templates, template]);
-             navigate(`/app/templates/${template.id}`);
+             navigate(`/app/templates/${template._id}`);
            })
            .catch(err => {
-             console.error(err);
+             console.error('Create template error:', err);
              if (err.response?.status === 401) {
                navigate('/');
              }
@@ -40,15 +48,16 @@ import React, { useState, useEffect } from 'react';
        return (
          <div className="templates-content">
            <h1>Templates</h1>
-           <button className="templateButton" onClick={handleCreateTemplate}>Create New Template</button>
+           <button className="templateButton" onClick={handleCreateTemplate}>
+             Create New Template
+           </button>
            <div className="template-list">
              {templates.map(template => (
-               <div key={template.id} className="template-item">
+               <div key={template._id} className="template-item">
                  <Link
-                   to={`/app/templates/${template.id}`}
+                   to={`/app/templates/${template._id}`}
                    target="_blank"
                    rel="noopener noreferrer"
-                   state={{ templatePath: template.path }}
                  >
                    {template.name}
                  </Link>

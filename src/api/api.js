@@ -1,84 +1,36 @@
 import axios from 'axios';
 
-     const API_URL = 'http://localhost:5000/api';
+const api = axios.create({
+  baseURL: 'http://localhost:5000/api',
+});
 
-     const api = axios.create({
-       baseURL: API_URL,
-       headers: { 'Content-Type': 'application/json' }
-     });
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
-     api.interceptors.request.use(config => {
-       const token = localStorage.getItem('token');
-       if (token) {
-         config.headers.Authorization = `Bearer ${token}`;
-       }
-       return config;
-     }, error => {
-       console.error('API request error:', error);
-       return Promise.reject(error);
-     });
+export const fetchDevices = () => api.get('/devices').then((res) => res.data);
+export const createDevice = (device) => api.post('/devices', device).then((res) => res.data);
+export const fetchDevice = (id) => api.get(`/devices/${id}`).then((res) => res.data);
+export const updateDevice = (id, device) => api.put(`/devices/${id}`, device).then((res) => res.data);
+export const deleteDevice = (id) => api.delete(`/devices/${id}`);
 
-     export const fetchDevices = async () => {
-       const response = await api.get('/devices');
-       return response.data;
-     };
+export const fetchSlides = () => api.get('/slides').then((res) => res.data);
+export const createSlide = (slide) => api.post('/slides', slide).then((res) => res.data);
+export const updateSlide = (id, slide) => api.put(`/slides/${id}`, slide).then((res) => res.data);
 
-     export const createDevice = async (device) => {
-       const response = await api.post('/devices', device);
-       return response.data;
-     };
+export const fetchTemplates = () => api.get('/templates').then((res) => res.data);
+export const fetchTemplate = (id) => api.get(`/templates/${id}`).then((res) => res.data);
+export const createTemplate = (template) => api.post('/templates', template).then((res) => res.data);
+export const updateTemplate = (id, template) => api.put(`/templates/${id}`, template).then((res) => res.data);
 
-     export const fetchDevice = async (id) => {
-       const response = await api.get(`/devices/${id}`);
-       return response.data;
-     };
+export const fetchContent = (templateId, shapeId) => api.get(`/content/${templateId}/${shapeId}`).then((res) => res.data);
+export const updateContent = (templateId, shapeId, text) => api.put(`/content/${templateId}/${shapeId}`, { text }).then((res) => res.data);
 
-     export const updateDevice = async (id, device) => {
-       const response = await api.put(`/devices/${id}`, device);
-       return response.data;
-     };
-
-     export const fetchSlides = async () => {
-       const response = await api.get('/slides');
-       return response.data;
-     };
-
-     export const createSlide = async (slide) => {
-       const response = await api.post('/slides', slide);
-       return response.data;
-     };
-
-     export const updateSlide = async (id, slide) => {
-       const response = await api.put(`/slides/${id}`, slide);
-       return response.data;
-     };
-
-     export const fetchTemplates = async () => {
-       const response = await api.get('/templates');
-       return response.data;
-     };
-
-     export const fetchTemplate = async (id) => {
-       const response = await api.get(`/templates/${id}`);
-       return response.data;
-     };
-
-     export const createTemplate = async (template) => {
-       const response = await api.post('/templates', template);
-       return response.data;
-     };
-
-     export const updateTemplate = async (id, template) => {
-       const response = await api.put(`/templates/${id}`, template);
-       return response.data;
-     };
-
-     export const fetchContent = async (templateId, shapeId) => {
-       const response = await api.get(`/content/${templateId}/${shapeId}`);
-       return response.data;
-     };
-
-     export const updateContent = async (templateId, shapeId, text) => {
-       const response = await api.put(`/content/${templateId}/${shapeId}`, { text });
-       return response.data;
-     };
+export default api;
